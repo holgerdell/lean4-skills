@@ -1,15 +1,33 @@
 #!/bin/bash
 set -euo pipefail
 
+# Resolve TMPDIR once: honor caller's TMPDIR (macOS always sets it), fall back
+# to /tmp on systems where it is unset (common on Linux). Export so child
+# processes (jq, python3, mktemp) see the same value.
+: "${TMPDIR:=/tmp}"
+export TMPDIR
+
 # Session cycle/time tracker for autonomous commands (autoprove, autoformalize).
-# State is stored in a JSON file under /tmp. All mutations are atomic
-# (write-to-temp, then mv). Single-writer assumption: only the main command
-# thread writes; subagents never touch the state file.
+# State is stored in a JSON file. The directory is resolved at each call as
+# LEAN4_SESSION_DIR (persisted by init) falling back to $TMPDIR. LEAN4_SESSION_DIR
+# wins so later invocations (tick, status, stop) find the state file init
+# created even when the ambient TMPDIR differs between calls (e.g. Claude Code
+# sets TMPDIR=/tmp/claude in sandbox mode; a plain shell does not). All
+# mutations are atomic (write-to-temp, then mv). Single-writer assumption:
+# only the main command thread writes; subagents never touch the state file.
 #
 # Env-file persistence: resolves LEAN4_ENV_FILE → CLAUDE_ENV_FILE → (none).
 # CLAUDE_ENV_FILE is the Claude Code adapter input; LEAN4_ENV_FILE is the
-# host-neutral override. When neither is available, session ID is printed
-# to stdout for manual env-prefix passing.
+# host-neutral override. When an env file resolves, init persists both
+# LEAN4_SESSION_ID and LEAN4_SESSION_DIR to it; subsequent invocations that
+# source the env file inherit both and work regardless of ambient TMPDIR.
+#
+# When NO env file is available, init prints the session ID to stdout and
+# prints the session directory to stderr as a hint. For manual cross-TMPDIR
+# reuse the caller MUST pass BOTH vars (or preserve TMPDIR from init):
+#   SID=$(cycle_tracker.sh init ...)            # stdout: just the sid
+#   # stderr hint shows: LEAN4_SESSION_DIR=<dir>
+#   LEAN4_SESSION_ID=$SID LEAN4_SESSION_DIR=<dir> cycle_tracker.sh tick ...
 #
 # Subcommands:
 #   init   --max-cycles=N --max-stuck=N [--max-runtime=Xm] [--max-deep-per-cycle=N] [--max-consecutive-deep=N]
@@ -157,7 +175,16 @@ _state_file() {
     echo "error=LEAN4_SESSION_ID is not set" >&2
     exit 2
   fi
-  local f="/tmp/${sid}.json"
+  # Resolution order:
+  #   1. LEAN4_SESSION_DIR — persisted by init, survives TMPDIR changes
+  #      between invocations (tick, status, stop may run under a different
+  #      ambient TMPDIR than init).
+  #   2. TMPDIR — always set by the preamble at the top of this script,
+  #      matches init when LEAN4_SESSION_DIR is not persisted.
+  # LEAN4_SESSION_DIR wins so the tracker can always find the state file
+  # init created, even when Claude Code and a plain shell disagree on TMPDIR.
+  local dir="${LEAN4_SESSION_DIR:-$TMPDIR}"
+  local f="${dir}/${sid}.json"
   if [[ ! -f "$f" ]]; then
     echo "error=state file not found: $f" >&2
     exit 2
@@ -267,7 +294,7 @@ cmd_init() {
   runtime_seconds=$(_parse_duration "$max_runtime")
 
   # Clean stale sessions (>24h, owned by current user)
-  find /tmp -maxdepth 1 -name 'lean4-session-*.json' -user "$(id -u)" -mmin +1440 -delete 2>/dev/null || true
+  find "$TMPDIR" -maxdepth 1 -name 'lean4-session-*.json' -user "$(id -u)" -mmin +1440 -delete 2>/dev/null || true
 
   # Create state file via mktemp (no race).
   # BSD mktemp (macOS) requires the template to END with X's — a .json
@@ -275,7 +302,7 @@ cmd_init() {
   # So we create without .json, then rename.
   _detect_backend
   local state_file tmp_file
-  tmp_file=$(mktemp /tmp/lean4-session-XXXXXX)
+  tmp_file=$(mktemp "$TMPDIR/lean4-session-XXXXXX")
   state_file="${tmp_file}.json"
   mv "$tmp_file" "$state_file"
   local session_id
@@ -332,8 +359,23 @@ ENDJSON
 
   _json_create "$state_file" "$content"
 
-  # Persist session ID to the resolved env file
+  # Persist session ID and the chosen state directory to the resolved env file.
+  # LEAN4_SESSION_DIR lets later invocations (tick/status/stop) find the same
+  # state file even if the ambient TMPDIR differs from init's — which matters
+  # for Claude Code (where init runs under TMPDIR=/tmp/claude) vs. a plain shell.
   _persist_env "export LEAN4_SESSION_ID=\"$session_id\""
+  _persist_env "export LEAN4_SESSION_DIR=\"$(dirname "$state_file")\""
+
+  # Stdout-only fallback: no env file resolved → _persist_env was a no-op,
+  # so manual callers won't automatically inherit LEAN4_SESSION_DIR. Surface
+  # it on stderr as a hint so they can preserve it across invocations when
+  # their TMPDIR changes. Stdout remains just the session id for backward
+  # compatibility with callers that do SID=$(cycle_tracker.sh init ...).
+  if [[ -z "$resolved_env_file" ]]; then
+    local state_dir
+    state_dir=$(dirname "$state_file")
+    echo "LEAN4_SESSION_DIR=$state_dir" >&2
+  fi
 
   echo "$session_id"
 }
@@ -783,7 +825,10 @@ cmd_stop() {
   if [[ -z "$sid" ]]; then
     return 0
   fi
-  local f="/tmp/${sid}.json"
+  # Mirror _state_file's resolution order: persisted LEAN4_SESSION_DIR wins
+  # over ambient TMPDIR, so stop finds the same file init created.
+  local dir="${LEAN4_SESSION_DIR:-$TMPDIR}"
+  local f="${dir}/${sid}.json"
   # Read the env file path that init recorded, so we clean up the right file
   # even if LEAN4_ENV_FILE/CLAUDE_ENV_FILE changed since init.
   # Read the env file path that init recorded. If the state file is missing or
@@ -801,10 +846,38 @@ cmd_stop() {
   rm -f "$f"
   # Also clean up any orphaned tmp files from atomic writes
   rm -f "${f}".tmp.* 2>/dev/null || true
-  # Unpersist only this session's LEAN4_SESSION_ID from the env file, not
-  # another session's. Match the exact value being stopped.
+  # Unpersist this session's LEAN4_SESSION_ID and (conditionally)
+  # LEAN4_SESSION_DIR. A later init under the same env file may have
+  # overwritten both lines with a newer session's values. If two sessions
+  # share the same TMPDIR, the newer session's DIR string is identical to
+  # ours — removing it by value would clobber the newer session's
+  # persistence (weakening cross-TMPDIR robustness) even though its ID stays.
+  # So only remove the DIR line when the env file's current ID still matches
+  # ours (or no ID line remains). Uses `grep -F -x` (fixed strings,
+  # whole-line) so regex metacharacters in ${sid}/${dir} — e.g. '.' in a
+  # BSD mktemp path — can't cause over- or under-matches.
   if [[ -n "$recorded_env" && -f "$recorded_env" && -r "$recorded_env" && -w "$recorded_env" ]]; then
-    grep -v "^export LEAN4_SESSION_ID=\"${sid}\"" "$recorded_env" > "${recorded_env}.tmp" 2>/dev/null || true
+    local current_id_line current_id
+    # `|| true` because grep exits 1 when no match, which combined with
+    # pipefail would abort stop before the empty-current_id branch runs —
+    # the same env file may legitimately have no LEAN4_SESSION_ID line
+    # (e.g. only a stale DIR line after an interrupted prior cleanup).
+    current_id_line=$(grep '^export LEAN4_SESSION_ID=' "$recorded_env" 2>/dev/null | tail -n1 || true)
+    current_id="${current_id_line#export LEAN4_SESSION_ID=\"}"
+    current_id="${current_id%\"}"
+    local id_line="export LEAN4_SESSION_ID=\"${sid}\""
+    local dir_line="export LEAN4_SESSION_DIR=\"${dir}\""
+    if [[ -z "$current_id" || "$current_id" == "$sid" ]]; then
+      grep -v -F -x "$id_line" "$recorded_env" \
+        | grep -v -F -x "$dir_line" \
+        > "${recorded_env}.tmp" 2>/dev/null || true
+    else
+      # Newer session supersedes us; only remove any lingering stale ID line
+      # that matches our sid. Leave LEAN4_SESSION_DIR alone — it belongs to
+      # the active session now.
+      grep -v -F -x "$id_line" "$recorded_env" \
+        > "${recorded_env}.tmp" 2>/dev/null || true
+    fi
     mv "${recorded_env}.tmp" "$recorded_env"
   fi
 }
