@@ -60,22 +60,22 @@ theorem baz : Prop := by
 class TestBenefitOrdering(unittest.TestCase):
     """Patterns are returned in policy order: directness, structural, conditional."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         with tempfile.NamedTemporaryFile(suffix=".lean", mode="w", delete=False) as f:
             f.write(FIXTURE)
             f.flush()
             self.path = Path(f.name)
         self.patterns = analyze_file(self.path)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.path.unlink()
 
-    def test_benefit_groups_present(self):
+    def test_benefit_groups_present(self) -> None:
         benefits = [p.benefit for p in self.patterns]
         self.assertIn("directness", benefits)
         self.assertIn("structural", benefits)
 
-    def test_cross_phase_ordering(self):
+    def test_cross_phase_ordering(self) -> None:
         """Directness before structural before conditional."""
         benefits = [p.benefit for p in self.patterns]
         first_directness = next(i for i, b in enumerate(benefits) if b == "directness")
@@ -95,7 +95,7 @@ class TestBenefitOrdering(unittest.TestCase):
                 f"structural (idx {first_structural}) should precede conditional (idx {first_conditional})",
             )
 
-    def test_intra_phase_ordering(self):
+    def test_intra_phase_ordering(self) -> None:
         """Within directness: by-exact before apply-exact-chain."""
         directness = [p for p in self.patterns if p.benefit == "directness"]
         types = [p.pattern_type for p in directness]
@@ -108,7 +108,7 @@ class TestBenefitOrdering(unittest.TestCase):
                 f"by-exact (idx {idx_by}) should precede apply-exact-chain (idx {idx_apply}) within directness",
             )
 
-    def test_benefit_field_values(self):
+    def test_benefit_field_values(self) -> None:
         valid_benefits = {"directness", "performance", "structural", "conditional"}
         for p in self.patterns:
             self.assertIn(
@@ -143,7 +143,7 @@ theorem foo : Nat := by
 class TestCrossFileOrdering(unittest.TestCase):
     """Directness from a later file appears before conditional from an earlier file."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.tmpdir = tempfile.mkdtemp()
         # aaa sorts before zzz — conditional file is processed first
         cond_path = Path(self.tmpdir) / "aaa_conditional.lean"
@@ -152,12 +152,12 @@ class TestCrossFileOrdering(unittest.TestCase):
         dir_path.write_text(DIRECTNESS_ONLY)
         self.files = [cond_path, dir_path]
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         import shutil
 
         shutil.rmtree(self.tmpdir)
 
-    def test_global_sort_across_files(self):
+    def test_global_sort_across_files(self) -> None:
         """analyze_files() globally sorts: directness before conditional."""
         patterns = analyze_files(self.files)
         benefits = [p.benefit for p in patterns]
