@@ -562,7 +562,7 @@ _PHASE_POSITION = {
 }
 
 
-def _sort_key(p: GolfablePattern) -> tuple:
+def _sort_key(p: GolfablePattern) -> tuple[int, int, int, str, int]:
     """Policy-order sort key: benefit → phase position → line count → file → line."""
     return (
         _BENEFIT_ORDER.get(p.benefit, 3),
@@ -686,7 +686,7 @@ def format_output(patterns: list[GolfablePattern], verbose: bool = False) -> str
     return "\n".join(output)
 
 
-def main():
+def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(

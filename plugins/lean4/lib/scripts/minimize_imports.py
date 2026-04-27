@@ -256,7 +256,7 @@ def minimize_imports(
             backup_path.unlink()
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)

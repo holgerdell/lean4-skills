@@ -64,7 +64,7 @@ def get_tactic_lines(lines: list[str], start: int, end: int) -> list[str]:
     return result
 
 
-def classify_proof(tactics: list[str]) -> tuple:
+def classify_proof(tactics: list[str]) -> tuple[str, str, str]:
     """Classify a proof block and estimate exact? likelihood.
 
     Returns (category, priority, reason).
@@ -238,7 +238,7 @@ def find_candidates(
     return candidates
 
 
-def main():
+def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -323,7 +323,7 @@ an afterthought. Pair with find_golfable.py for full pattern coverage.
         print()
 
     # Summary
-    by_cat = {}
+    by_cat: dict[str, list[ProofBlock]] = {}
     for c in all_candidates:
         by_cat.setdefault(c.category, []).append(c)
     print(f"=== SUMMARY: {len(all_candidates)} candidates ===")

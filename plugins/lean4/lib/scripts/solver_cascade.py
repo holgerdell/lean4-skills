@@ -27,6 +27,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 SOLVERS = [
     ("rfl", 1),
@@ -108,7 +109,7 @@ def try_solver(
         tmp_path.unlink(missing_ok=True)
 
 
-def run_solver_cascade(context: dict, file_path: Path) -> str | None:
+def run_solver_cascade(context: dict[str, Any], file_path: Path) -> str | None:
     """Run solver cascade, return diff if any succeeds."""
     line = context.get("line", 1)  # Default to line 1 if not specified
     column = context.get("column", 0)
@@ -132,7 +133,7 @@ def run_solver_cascade(context: dict, file_path: Path) -> str | None:
     return None
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 3:
         print("Usage: solver_cascade.py CONTEXT.json FILE.lean", file=sys.stderr)
         sys.exit(1)

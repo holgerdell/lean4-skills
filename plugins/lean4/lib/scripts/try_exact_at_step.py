@@ -26,6 +26,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 
 def find_project_root(start: Path) -> Path:
@@ -167,7 +168,7 @@ def run_lean_and_capture(
 
 def test_exact_at(
     file_path: Path, target_line: int, dry_run: bool = False, timeout: int = 120
-) -> dict:
+) -> dict[str, Any]:
     """Test exact? replacement at a specific proof location.
 
     Uses atomic backup/restore when swapping the source file for Lean invocation.
@@ -255,7 +256,7 @@ def test_exact_at(
     return result
 
 
-def main():
+def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(

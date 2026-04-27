@@ -27,6 +27,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 ERROR_PATTERNS = [
     (r"type mismatch", "type_mismatch"),
@@ -42,7 +43,7 @@ ERROR_PATTERNS = [
 ]
 
 
-def parse_location(line: str) -> dict | None:
+def parse_location(line: str) -> dict[str, Any] | None:
     """Extract file:line:column from error line.
 
     Handles both Unix paths (/path/to/file.lean:10:5:)
@@ -139,7 +140,7 @@ def compute_error_hash(error_type: str, file: str, line: int) -> str:
     return hashlib.sha256(content.encode()).hexdigest()[:12]
 
 
-def parse_lean_errors(error_file: Path) -> list[dict]:
+def parse_lean_errors(error_file: Path) -> list[dict[str, Any]]:
     """Parse Lean error output file into list of structured errors.
 
     Returns a list of all errors found (not just the first one).
@@ -178,7 +179,7 @@ def parse_lean_errors(error_file: Path) -> list[dict]:
     return errors
 
 
-def _build_error_dict(error_lines: list[str]) -> dict:
+def _build_error_dict(error_lines: list[str]) -> dict[str, Any]:
     """Build a single error dict from its lines."""
     error_text = "\n".join(error_lines)
 
@@ -206,7 +207,7 @@ def _build_error_dict(error_lines: list[str]) -> dict:
     }
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 2:
         print("Usage: parse_lean_errors.py ERROR_FILE [--all]", file=sys.stderr)
         sys.exit(1)

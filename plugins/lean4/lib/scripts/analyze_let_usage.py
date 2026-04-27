@@ -326,7 +326,7 @@ def analyze_specific_binding(file_path: Path, line_number: int) -> str | None:
     return f"No let binding found at line {line_number} in {file_path}"
 
 
-def main():
+def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(
