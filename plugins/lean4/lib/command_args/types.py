@@ -1,4 +1,5 @@
 """Core data types for the lean4 slash-command parser."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -26,7 +27,9 @@ class ParseContext:
 
 
 # Bare callable signatures — wrapped in Coercion / CrossValidation records.
-CoerceFn = Callable[[object, Mapping[str, object], ParseContext], tuple[object, str | None]]
+CoerceFn = Callable[
+    [object, Mapping[str, object], ParseContext], tuple[object, str | None]
+]
 ValidateFn = Callable[[Mapping[str, object], ParseContext], list[str]]
 
 
@@ -128,7 +131,11 @@ class ParseResult:
                     "value": rf.value,
                     "source": rf.source,
                     "enforcement": rf.enforcement,
-                    **({"coerced_from": rf.coerced_from} if rf.coerced_from is not None else {}),
+                    **(
+                        {"coerced_from": rf.coerced_from}
+                        if rf.coerced_from is not None
+                        else {}
+                    ),
                 }
                 for name, rf in self.options.items()
             },

@@ -42,7 +42,9 @@ SOLVERS = [
 ]
 
 
-def try_solver(file_path: Path, line: int, column: int, solver: str, timeout: int) -> Optional[str]:
+def try_solver(
+    file_path: Path, line: int, column: int, solver: str, timeout: int
+) -> Optional[str]:
     """
     Try inserting solver tactic at given location.
     Returns diff if compilation succeeds.
@@ -76,7 +78,7 @@ def try_solver(file_path: Path, line: int, column: int, solver: str, timeout: in
     # Write to temp file in same directory as original for proper project context
     # Use underscore prefix (not dot) since Lean module names can't start with '.'
     tmp_path = file_path.parent / f"_solver_cascade_tmp_{file_path.name}"
-    with open(tmp_path, 'w') as tmp:
+    with open(tmp_path, "w") as tmp:
         tmp.writelines(lines)
 
     try:
@@ -86,7 +88,7 @@ def try_solver(file_path: Path, line: int, column: int, solver: str, timeout: in
             ["lake", "env", "lean", str(tmp_path)],
             capture_output=True,
             timeout=timeout,
-            text=True
+            text=True,
         )
 
         if result.returncode == 0:
@@ -94,7 +96,7 @@ def try_solver(file_path: Path, line: int, column: int, solver: str, timeout: in
             diff = subprocess.run(
                 ["diff", "-u", str(file_path), str(tmp_path)],
                 capture_output=True,
-                text=True
+                text=True,
             ).stdout
             return diff
 

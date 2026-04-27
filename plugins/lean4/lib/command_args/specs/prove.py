@@ -1,4 +1,5 @@
 """Spec for /lean4:prove — guided cycle-by-cycle theorem proving."""
+
 from __future__ import annotations
 
 from ..types import (

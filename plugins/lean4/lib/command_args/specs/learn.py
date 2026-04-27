@@ -1,4 +1,5 @@
 """Spec for /lean4:learn — interactive teaching and mathlib exploration."""
+
 from __future__ import annotations
 
 from typing import Mapping
@@ -17,6 +18,7 @@ from . import _common
 # ---------------------------------------------------------------------------
 # Learn-specific coercions
 # ---------------------------------------------------------------------------
+
 
 def _track_without_game_coerce(
     value: object,
@@ -66,6 +68,7 @@ INTERACTIVE_WITHOUT_SOCRATIC = Coercion(
 # Learn-specific cross-validations
 # ---------------------------------------------------------------------------
 
+
 def _source_overrides_scope_validate(
     flags: Mapping[str, object],
     ctx: ParseContext,
@@ -103,9 +106,7 @@ OUTPUT_FILE_REQUIRES_OUT = CrossValidation(
     rule_id="learn-output-file-requires-out",
     fn=_output_file_requires_out_validate,
     severity="error",
-    doc_phrases=(
-        "--output=file without --out -> startup validation error",
-    ),
+    doc_phrases=("--output=file without --out -> startup validation error",),
     summary="Require --out when --output=file.",
 )
 

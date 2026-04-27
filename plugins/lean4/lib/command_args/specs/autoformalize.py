@@ -1,4 +1,5 @@
 """Spec for /lean4:autoformalize — autonomous end-to-end formalization."""
+
 from __future__ import annotations
 
 from typing import Mapping
@@ -15,6 +16,7 @@ from ..types import (
 # ---------------------------------------------------------------------------
 # Autoformalize-specific coercions
 # ---------------------------------------------------------------------------
+
 
 def _review_source_coerce(
     value: object,
@@ -45,6 +47,7 @@ REVIEW_SOURCE_COERCION = Coercion(
 # Autoformalize-specific cross-validations
 # ---------------------------------------------------------------------------
 
+
 def _source_required(
     flags: Mapping[str, object],
     ctx: ParseContext,
@@ -59,9 +62,7 @@ SOURCE_REQUIRED = CrossValidation(
     rule_id="autoformalize-source-required",
     fn=_source_required,
     severity="error",
-    doc_phrases=(
-        "--source is required; error if missing.",
-    ),
+    doc_phrases=("--source is required; error if missing.",),
     summary="Require --source for autoformalize.",
 )
 
@@ -72,7 +73,9 @@ def _claim_select_required(
 ) -> list[str]:
     """--claim-select is required; error if missing."""
     if not flags.get("--claim-select"):
-        return ["--claim-select is required; error if missing (no unattended guessing)."]
+        return [
+            "--claim-select is required; error if missing (no unattended guessing)."
+        ]
     return []
 
 
@@ -93,7 +96,9 @@ def _out_required(
 ) -> list[str]:
     """--out is required; error if missing."""
     if not flags.get("--out"):
-        return ["--out is required when no existing target file is in scope; error if missing."]
+        return [
+            "--out is required when no existing target file is in scope; error if missing."
+        ]
     return []
 
 

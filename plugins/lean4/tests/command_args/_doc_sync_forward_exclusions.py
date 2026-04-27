@@ -23,11 +23,9 @@ EXCLUSIONS: list[tuple[str, str]] = [
     ("draft", "unreadable format"),
     ("formalize", "unreadable format"),
     ("learn", "Unsupported source type"),
-
     # --- Class (b): interactive user prompting ---
     # learn track picker — model-side interactive flow
     ("learn", "prompt track picker"),
-
     # --- Class (c): repo-level search ---
     # learn scope-coercion exception — requires local-declaration resolution
     ("learn", "unless topic resolves to a local declaration"),

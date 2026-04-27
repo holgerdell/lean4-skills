@@ -8,6 +8,7 @@ validated-invocation block via additionalContext.
 Fails OPEN on any internal error — a Python bug must NEVER prevent
 a user from running a command.
 """
+
 import json
 import os
 import sys
@@ -24,7 +25,14 @@ if _LIB_ROOT not in sys.path:
 
 # Pre-import gate: only the six parser-covered commands go through the parser.
 # Uncovered commands pass through without importing command_args.
-_COVERED_COMMANDS = {"draft", "learn", "formalize", "autoformalize", "prove", "autoprove"}
+_COVERED_COMMANDS = {
+    "draft",
+    "learn",
+    "formalize",
+    "autoformalize",
+    "prove",
+    "autoprove",
+}
 
 
 def _emit(obj: dict) -> None:
@@ -37,12 +45,14 @@ def _passthrough() -> None:
 
 
 def _emit_warning(message: str) -> None:
-    _emit({
-        "hookSpecificOutput": {
-            "hookEventName": "UserPromptSubmit",
-            "additionalContext": message,
+    _emit(
+        {
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": message,
+            }
         }
-    })
+    )
 
 
 def main() -> None:
@@ -65,7 +75,7 @@ def main() -> None:
     parts = prompt.split(None, 1)
     head = parts[0]
     tail = parts[1] if len(parts) > 1 else ""
-    name = head[len("/lean4:"):]
+    name = head[len("/lean4:") :]
     if not name:
         return _passthrough()
 
@@ -119,12 +129,14 @@ def main() -> None:
             pass  # artifact is best-effort
 
     block = format_validated_block(result)
-    _emit({
-        "hookSpecificOutput": {
-            "hookEventName": "UserPromptSubmit",
-            "additionalContext": block,
+    _emit(
+        {
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": block,
+            }
         }
-    })
+    )
 
 
 if __name__ == "__main__":

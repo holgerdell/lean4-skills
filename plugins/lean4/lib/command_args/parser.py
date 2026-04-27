@@ -1,4 +1,5 @@
 """Core parser: parse_invocation(spec, raw_tail, *, cwd) -> ParseResult."""
+
 from __future__ import annotations
 
 import os
@@ -61,7 +62,12 @@ def parse_invocation(spec: CommandSpec, raw_tail: str, *, cwd: str) -> ParseResu
                 # This handles both --flag (presence = true) and --flag=false
                 # (expanded to --flag false by normalize_flags).
                 if i + 1 < len(tokens) and tokens[i + 1].lower() in (
-                    "true", "false", "1", "0", "yes", "no",
+                    "true",
+                    "false",
+                    "1",
+                    "0",
+                    "yes",
+                    "no",
                 ):
                     raw_flags[canonical_name] = tokens[i + 1]
                     i += 1
@@ -81,9 +87,7 @@ def parse_invocation(spec: CommandSpec, raw_tail: str, *, cwd: str) -> ParseResu
                 result.positionals[ps.name] = token
                 positional_idx += 1
             else:
-                result.errors.append(
-                    f"Unexpected positional argument: {token!r}"
-                )
+                result.errors.append(f"Unexpected positional argument: {token!r}")
         i += 1
 
     if result.errors:
@@ -148,14 +152,10 @@ def parse_invocation(spec: CommandSpec, raw_tail: str, *, cwd: str) -> ParseResu
             continue
         for req in fs.requires:
             if req not in raw_flags:
-                result.errors.append(
-                    f"{fs.name} requires {req}"
-                )
+                result.errors.append(f"{fs.name} requires {req}")
         for forbidden in fs.forbidden_with:
             if forbidden in raw_flags:
-                result.errors.append(
-                    f"{fs.name} is incompatible with {forbidden}"
-                )
+                result.errors.append(f"{fs.name} is incompatible with {forbidden}")
 
     # Cross-validations — inject positionals as __positional_<name> sentinels
     # so cross-validation functions can check for positional presence.
@@ -259,4 +259,7 @@ def _parse_duration(flag_name: str, raw_value: object) -> tuple[object, str | No
         except ValueError:
             pass
 
-    return raw_value, f"{flag_name}: invalid duration {raw_value!r}; expected e.g. '10m', '2h', '120s'"
+    return (
+        raw_value,
+        f"{flag_name}: invalid duration {raw_value!r}; expected e.g. '10m', '2h', '120s'",
+    )

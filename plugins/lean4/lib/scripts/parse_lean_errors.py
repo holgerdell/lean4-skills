@@ -55,7 +55,7 @@ def parse_location(line: str) -> Optional[dict]:
         return {
             "file": match.group(1),
             "line": int(match.group(2)),
-            "column": int(match.group(3))
+            "column": int(match.group(3)),
         }
     return None
 
@@ -105,7 +105,7 @@ def extract_code_snippet(file_path: str, line: int, context_lines: int = 3) -> s
         snippet_lines = []
         for i in range(start, end):
             prefix = "❌ " if i == line - 1 else "   "
-            snippet_lines.append(f"{prefix}{i+1:4d} | {lines[i].rstrip()}")
+            snippet_lines.append(f"{prefix}{i + 1:4d} | {lines[i].rstrip()}")
         return "\n".join(snippet_lines)
     except Exception:
         return ""
@@ -117,8 +117,17 @@ def extract_suggestion_keywords(message: str) -> list[str]:
     # Extract identifiers in single quotes
     keywords.extend(re.findall(r"'([^']+)'", message))
     # Extract common type class names
-    for term in ["Continuous", "Measurable", "Integrable", "Differentiable",
-                 "Fintype", "DecidableEq", "Group", "Ring", "Field"]:
+    for term in [
+        "Continuous",
+        "Measurable",
+        "Integrable",
+        "Differentiable",
+        "Fintype",
+        "DecidableEq",
+        "Group",
+        "Ring",
+        "Field",
+    ]:
         if term.lower() in message.lower():
             keywords.append(term)
     return list(set(keywords))[:10]  # Limit to 10
@@ -214,7 +223,9 @@ def main():
     if "--all" in sys.argv:
         print(json.dumps({"errors": errors, "count": len(errors)}, indent=2))
     else:
-        print(json.dumps(errors[0] if errors else {"error": "No errors parsed"}, indent=2))
+        print(
+            json.dumps(errors[0] if errors else {"error": "No errors parsed"}, indent=2)
+        )
 
 
 if __name__ == "__main__":

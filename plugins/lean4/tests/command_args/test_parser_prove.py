@@ -1,4 +1,5 @@
 """Layer 1 parser golden tests for /lean4:prove."""
+
 import os
 import sys
 import unittest

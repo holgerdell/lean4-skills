@@ -12,9 +12,11 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
+
 @dataclass
 class LetBinding:
     """Represents a let binding with usage information."""
+
     name: str
     line_number: int
     definition: str
@@ -24,6 +26,7 @@ class LetBinding:
     recommendation: str
     token_impact: str
 
+
 def count_tokens(text: str) -> int:
     """Estimate token count for text.
 
@@ -31,8 +34,9 @@ def count_tokens(text: str) -> int:
     especially for multi-line definitions, Unicode identifiers, and complex expressions.
     """
     # Simple heuristic: count words, operators, and punctuation
-    tokens = len(re.findall(r'\w+|[^\w\s]', text))
+    tokens = len(re.findall(r"\w+|[^\w\s]", text))
     return tokens
+
 
 def find_let_bindings(file_path: Path) -> List[Tuple[int, str, str]]:
     """Find all let bindings in file with their definitions.
@@ -44,7 +48,7 @@ def find_let_bindings(file_path: Path) -> List[Tuple[int, str, str]]:
     if not file_path.exists():
         return []
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     bindings = []
@@ -53,7 +57,7 @@ def find_let_bindings(file_path: Path) -> List[Tuple[int, str, str]]:
         line = lines[i]
         # Match: let <name> := <definition>
         # or: let <name> : <type> := <definition>
-        match = re.search(r'let\s+(\w+)\s*(?::\s*[^:]+)?\s*:=\s*(.+)', line)
+        match = re.search(r"let\s+(\w+)\s*(?::\s*[^:]+)?\s*:=\s*(.+)", line)
         if match:
             name = match.group(1)
             definition = match.group(2).rstrip()
@@ -61,19 +65,21 @@ def find_let_bindings(file_path: Path) -> List[Tuple[int, str, str]]:
             # Try to capture multi-line definitions (simple heuristic)
             # If definition appears to be incomplete (ends with by, {, or open paren), extend
             j = i + 1
-            open_parens = definition.count('(') - definition.count(')')
-            open_braces = definition.count('{') - definition.count('}')
-            ends_with_by = definition.rstrip().endswith(' by')
+            open_parens = definition.count("(") - definition.count(")")
+            open_braces = definition.count("{") - definition.count("}")
+            ends_with_by = definition.rstrip().endswith(" by")
 
-            while j < len(lines) and (open_parens > 0 or open_braces > 0 or ends_with_by):
+            while j < len(lines) and (
+                open_parens > 0 or open_braces > 0 or ends_with_by
+            ):
                 next_line = lines[j].rstrip()
                 # Stop at next declaration or unindented line
-                if re.match(r'^(theorem|lemma|def|example|instance|let)\s+', next_line):
+                if re.match(r"^(theorem|lemma|def|example|instance|let)\s+", next_line):
                     break
-                definition += '\n' + next_line
-                open_parens += next_line.count('(') - next_line.count(')')
-                open_braces += next_line.count('{') - next_line.count('}')
-                ends_with_by = next_line.rstrip().endswith(' by')
+                definition += "\n" + next_line
+                open_parens += next_line.count("(") - next_line.count(")")
+                open_braces += next_line.count("{") - next_line.count("}")
+                ends_with_by = next_line.rstrip().endswith(" by")
                 j += 1
                 # Safety limit
                 if j - i > 20:
@@ -84,10 +90,12 @@ def find_let_bindings(file_path: Path) -> List[Tuple[int, str, str]]:
 
     return bindings
 
-def count_binding_uses(file_path: Path, binding_name: str,
-                       def_line: int) -> Tuple[int, List[int]]:
+
+def count_binding_uses(
+    file_path: Path, binding_name: str, def_line: int
+) -> Tuple[int, List[int]]:
     """Count how many times a binding is used after its definition."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     uses = 0
@@ -97,11 +105,11 @@ def count_binding_uses(file_path: Path, binding_name: str,
     for i in range(def_line, len(lines)):
         line = lines[i]
         # Skip comments (line comments and single-line block comments)
-        line = re.sub(r'--.*$', '', line)
-        line = re.sub(r'\(\*.*?\*\)', '', line)
+        line = re.sub(r"--.*$", "", line)
+        line = re.sub(r"\(\*.*?\*\)", "", line)
 
         # Count occurrences of the binding name (as whole word)
-        pattern = r'\b' + re.escape(binding_name) + r'\b'
+        pattern = r"\b" + re.escape(binding_name) + r"\b"
         matches = len(re.findall(pattern, line))
 
         if matches > 0:
@@ -115,8 +123,10 @@ def count_binding_uses(file_path: Path, binding_name: str,
 
     return uses, locations
 
-def analyze_binding(file_path: Path, line_number: int, name: str,
-                   definition: str) -> LetBinding:
+
+def analyze_binding(
+    file_path: Path, line_number: int, name: str, definition: str
+) -> LetBinding:
     """Analyze a single let binding for optimization potential."""
     def_tokens = count_tokens(definition)
     uses_count, use_locations = count_binding_uses(file_path, name, line_number)
@@ -160,8 +170,9 @@ def analyze_binding(file_path: Path, line_number: int, name: str,
         uses_count=uses_count,
         use_locations=use_locations,
         recommendation=recommendation,
-        token_impact=token_impact
+        token_impact=token_impact,
     )
+
 
 def analyze_file(file_path: Path, verbose: bool = False) -> List[LetBinding]:
     """Analyze all let bindings in a file."""
@@ -174,55 +185,67 @@ def analyze_file(file_path: Path, verbose: bool = False) -> List[LetBinding]:
 
     return analyzed
 
-def format_output(file_path: Path, bindings: List[LetBinding],
-                 verbose: bool = False) -> str:
+
+def format_output(
+    file_path: Path, bindings: List[LetBinding], verbose: bool = False
+) -> str:
     """Format analysis results."""
     if not bindings:
         return f"No let bindings found in {file_path}"
 
     output = []
-    output.append(f"\n{'='*70}")
+    output.append(f"\n{'=' * 70}")
     output.append(f"Let Binding Usage Analysis: {file_path}")
-    output.append(f"{'='*70}\n")
+    output.append(f"{'=' * 70}\n")
 
     # Group by recommendation category
     dont_inline = [b for b in bindings if "DON'T INLINE" in b.recommendation]
     safe_to_inline = [b for b in bindings if "SAFE TO INLINE" in b.recommendation]
-    consider = [b for b in bindings if "CONSIDER" in b.recommendation or "MAYBE" in b.recommendation]
+    consider = [
+        b
+        for b in bindings
+        if "CONSIDER" in b.recommendation or "MAYBE" in b.recommendation
+    ]
     skip = [b for b in bindings if "SKIP" in b.recommendation]
     unused = [b for b in bindings if "UNUSED" in b.recommendation]
 
     # Report high-risk false positives first
     if dont_inline:
         output.append(f"⚠️  HIGH-RISK FALSE POSITIVES ({len(dont_inline)}):")
-        output.append(f"{'─'*70}")
+        output.append(f"{'─' * 70}")
         for b in dont_inline:
             output.append(f"\n  {b.name} (line {b.line_number})")
-            output.append(f"    Used: {b.uses_count} times (lines: {', '.join(map(str, b.use_locations[:5]))}{'...' if len(b.use_locations) > 5 else ''})")
+            output.append(
+                f"    Used: {b.uses_count} times (lines: {', '.join(map(str, b.use_locations[:5]))}{'...' if len(b.use_locations) > 5 else ''})"
+            )
             output.append(f"    Definition: ~{b.definition_tokens} tokens")
             output.append(f"    Impact: {b.token_impact}")
             output.append(f"    → {b.recommendation}")
             if verbose:
-                output.append(f"    Code: {b.definition[:60]}{'...' if len(b.definition) > 60 else ''}")
+                output.append(
+                    f"    Code: {b.definition[:60]}{'...' if len(b.definition) > 60 else ''}"
+                )
         output.append("")
 
     # Safe optimizations
     if safe_to_inline:
         output.append(f"✅ SAFE TO OPTIMIZE ({len(safe_to_inline)}):")
-        output.append(f"{'─'*70}")
+        output.append(f"{'─' * 70}")
         for b in safe_to_inline:
             output.append(f"\n  {b.name} (line {b.line_number})")
             output.append(f"    Used: {b.uses_count} time(s)")
             output.append(f"    Impact: {b.token_impact}")
             if verbose:
-                output.append(f"    Code: {b.definition[:60]}{'...' if len(b.definition) > 60 else ''}")
+                output.append(
+                    f"    Code: {b.definition[:60]}{'...' if len(b.definition) > 60 else ''}"
+                )
         output.append("")
 
     # Marginal cases
     if consider or skip:
         output.append(f"⚡ MARGINAL CASES ({len(consider) + len(skip)}):")
-        output.append(f"{'─'*70}")
-        for b in (consider + skip):
+        output.append(f"{'─' * 70}")
+        for b in consider + skip:
             output.append(f"\n  {b.name} (line {b.line_number})")
             output.append(f"    Used: {b.uses_count} times")
             output.append(f"    Impact: {b.token_impact}")
@@ -232,16 +255,16 @@ def format_output(file_path: Path, bindings: List[LetBinding],
     # Unused bindings
     if unused:
         output.append(f"🗑️  UNUSED BINDINGS ({len(unused)}):")
-        output.append(f"{'─'*70}")
+        output.append(f"{'─' * 70}")
         for b in unused:
             output.append(f"\n  {b.name} (line {b.line_number})")
             output.append(f"    → {b.recommendation}")
         output.append("")
 
     # Summary
-    output.append(f"{'='*70}")
+    output.append(f"{'=' * 70}")
     output.append("SUMMARY")
-    output.append(f"{'='*70}")
+    output.append(f"{'=' * 70}")
     output.append(f"  Total let bindings: {len(bindings)}")
     output.append("  Note: Token counts are approximate (heuristic-based)")
     output.append(f"  ⚠️  Don't inline (used ≥3 times): {len(dont_inline)}")
@@ -251,11 +274,14 @@ def format_output(file_path: Path, bindings: List[LetBinding],
     output.append("")
 
     if dont_inline:
-        output.append(f"⚠️  WARNING: {len(dont_inline)} bindings would INCREASE tokens if inlined!")
+        output.append(
+            f"⚠️  WARNING: {len(dont_inline)} bindings would INCREASE tokens if inlined!"
+        )
         output.append("   These are FALSE POSITIVES for let+have+exact pattern.")
         output.append("")
 
-    return '\n'.join(output)
+    return "\n".join(output)
+
 
 def analyze_specific_binding(file_path: Path, line_number: int) -> Optional[str]:
     """Analyze a specific let binding at given line number."""
@@ -266,33 +292,44 @@ def analyze_specific_binding(file_path: Path, line_number: int) -> Optional[str]
             binding = analyze_binding(file_path, line, name, definition)
 
             output = []
-            output.append(f"\n{'='*70}")
+            output.append(f"\n{'=' * 70}")
             output.append(f"Analysis: {name} (line {line_number})")
-            output.append(f"{'='*70}\n")
+            output.append(f"{'=' * 70}\n")
             output.append(f"Definition: {definition}")
             output.append(f"Definition size: ~{binding.definition_tokens} tokens\n")
             output.append("Usage:")
             output.append(f"  Count: {binding.uses_count} times")
-            output.append(f"  Locations: {', '.join(map(str, binding.use_locations))}\n")
+            output.append(
+                f"  Locations: {', '.join(map(str, binding.use_locations))}\n"
+            )
             output.append("Token Impact:")
-            output.append(f"  Current: ~{binding.definition_tokens + binding.uses_count * 2} tokens")
-            output.append(f"           ({binding.definition_tokens} def + {binding.uses_count} × 2 uses)")
-            output.append(f"  Inlined: ~{binding.definition_tokens * binding.uses_count} tokens")
-            output.append(f"           ({binding.definition_tokens} × {binding.uses_count} repetitions)")
+            output.append(
+                f"  Current: ~{binding.definition_tokens + binding.uses_count * 2} tokens"
+            )
+            output.append(
+                f"           ({binding.definition_tokens} def + {binding.uses_count} × 2 uses)"
+            )
+            output.append(
+                f"  Inlined: ~{binding.definition_tokens * binding.uses_count} tokens"
+            )
+            output.append(
+                f"           ({binding.definition_tokens} × {binding.uses_count} repetitions)"
+            )
             output.append(f"  {binding.token_impact}\n")
-            output.append(f"{'─'*70}")
+            output.append(f"{'─' * 70}")
             output.append(f"RECOMMENDATION: {binding.recommendation}")
-            output.append(f"{'─'*70}\n")
+            output.append(f"{'─' * 70}\n")
 
-            return '\n'.join(output)
+            return "\n".join(output)
 
     return f"No let binding found at line {line_number} in {file_path}"
+
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description='Analyze let binding usage to avoid false-positive optimizations',
+        description="Analyze let binding usage to avoid false-positive optimizations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -316,15 +353,19 @@ Why this matters:
 Key insight:
   If let binding is used ≥3 times, DON'T inline it.
   Current approach is already optimal.
-        """
+        """,
     )
 
-    parser.add_argument('path', help='Lean file or directory to analyze')
-    parser.add_argument('--line', type=int, help='Analyze specific let binding at this line')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                       help='Show binding definitions')
-    parser.add_argument('--recursive', '-r', action='store_true',
-                       help='Recursively analyze directory')
+    parser.add_argument("path", help="Lean file or directory to analyze")
+    parser.add_argument(
+        "--line", type=int, help="Analyze specific let binding at this line"
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Show binding definitions"
+    )
+    parser.add_argument(
+        "--recursive", "-r", action="store_true", help="Recursively analyze directory"
+    )
 
     args = parser.parse_args()
 
@@ -346,16 +387,16 @@ Key insight:
     # Collect files
     files = []
     if path.is_file():
-        if path.suffix == '.lean':
+        if path.suffix == ".lean":
             files = [path]
         else:
             print(f"Error: {path} is not a .lean file", file=sys.stderr)
             return 1
     else:
         if args.recursive:
-            files = list(path.rglob('*.lean'))
+            files = list(path.rglob("*.lean"))
         else:
-            files = list(path.glob('*.lean'))
+            files = list(path.glob("*.lean"))
 
     if not files:
         print(f"No .lean files found in {path}", file=sys.stderr)
@@ -368,5 +409,6 @@ Key insight:
 
     return 0
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

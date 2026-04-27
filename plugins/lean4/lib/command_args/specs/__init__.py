@@ -1,4 +1,5 @@
 """Per-command specs, assembled into COMMAND_SPECS."""
+
 from __future__ import annotations
 
 from ..types import CommandSpec

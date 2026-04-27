@@ -11,6 +11,7 @@ Also tests the two fail-open paths:
 - Import-broken (no lib/command_args on sys.path).
 - Parser-exception (shim that raises from parse_invocation).
 """
+
 import json
 import os
 import shutil
@@ -38,13 +39,16 @@ HOOK = str((_PLUGIN_ROOT / "hooks" / "validate_user_prompt.py").resolve(strict=T
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _run_hook(prompt: str, cwd: str, session_id: str = "test-roundtrip") -> dict:
     """Invoke the hook subprocess and return parsed JSON stdout."""
-    payload = json.dumps({
-        "session_id": session_id,
-        "cwd": cwd,
-        "prompt": prompt,
-    })
+    payload = json.dumps(
+        {
+            "session_id": session_id,
+            "cwd": cwd,
+            "prompt": prompt,
+        }
+    )
     result = subprocess.run(
         [HOOK],
         input=payload,
@@ -73,24 +77,27 @@ def _assert_parse_results_equal(test: unittest.TestCase, a, b, msg_prefix: str =
     test.assertEqual(a.errors, b.errors, f"{prefix}errors mismatch")
     test.assertEqual(a.coercions, b.coercions, f"{prefix}coercions mismatch")
     test.assertEqual(a.warnings, b.warnings, f"{prefix}warnings mismatch")
-    test.assertEqual(set(a.options.keys()), set(b.options.keys()),
-                     f"{prefix}option keys mismatch")
+    test.assertEqual(
+        set(a.options.keys()), set(b.options.keys()), f"{prefix}option keys mismatch"
+    )
     for name in a.options:
         ra, rb = a.options[name], b.options[name]
         test.assertEqual(ra.value, rb.value, f"{prefix}option {name} value")
         test.assertEqual(ra.source, rb.source, f"{prefix}option {name} source")
-        test.assertEqual(ra.enforcement, rb.enforcement,
-                         f"{prefix}option {name} enforcement")
-        test.assertEqual(ra.coerced_from, rb.coerced_from,
-                         f"{prefix}option {name} coerced_from")
+        test.assertEqual(
+            ra.enforcement, rb.enforcement, f"{prefix}option {name} enforcement"
+        )
+        test.assertEqual(
+            ra.coerced_from, rb.coerced_from, f"{prefix}option {name} coerced_from"
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # /lean4:draft
 # ═══════════════════════════════════════════════════════════════════════════
 
-class TestDraftRoundTrip(unittest.TestCase):
 
+class TestDraftRoundTrip(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp(prefix="hook_draft_")
 
@@ -133,8 +140,8 @@ class TestDraftRoundTrip(unittest.TestCase):
 # /lean4:learn
 # ═══════════════════════════════════════════════════════════════════════════
 
-class TestLearnRoundTrip(unittest.TestCase):
 
+class TestLearnRoundTrip(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp(prefix="hook_learn_")
 
@@ -172,8 +179,8 @@ class TestLearnRoundTrip(unittest.TestCase):
 # /lean4:formalize
 # ═══════════════════════════════════════════════════════════════════════════
 
-class TestFormalizeRoundTrip(unittest.TestCase):
 
+class TestFormalizeRoundTrip(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp(prefix="hook_formalize_")
 
@@ -210,8 +217,8 @@ class TestFormalizeRoundTrip(unittest.TestCase):
 # /lean4:autoformalize
 # ═══════════════════════════════════════════════════════════════════════════
 
-class TestAutoformalizeRoundTrip(unittest.TestCase):
 
+class TestAutoformalizeRoundTrip(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp(prefix="hook_autoformalize_")
 
@@ -242,7 +249,9 @@ class TestAutoformalizeRoundTrip(unittest.TestCase):
         _assert_parse_results_equal(self, from_hook, direct, "autoformalize extras")
 
     def test_autoformalize_blocked_missing_source(self):
-        out = _run_hook("/lean4:autoformalize --claim-select=first --out=o.lean", self.tmpdir)
+        out = _run_hook(
+            "/lean4:autoformalize --claim-select=first --out=o.lean", self.tmpdir
+        )
         self.assertEqual(out["decision"], "block")
         self.assertIn("source", out["reason"].lower())
 
@@ -251,8 +260,8 @@ class TestAutoformalizeRoundTrip(unittest.TestCase):
 # /lean4:prove
 # ═══════════════════════════════════════════════════════════════════════════
 
-class TestProveRoundTrip(unittest.TestCase):
 
+class TestProveRoundTrip(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp(prefix="hook_prove_")
 
@@ -291,8 +300,8 @@ class TestProveRoundTrip(unittest.TestCase):
 # /lean4:autoprove
 # ═══════════════════════════════════════════════════════════════════════════
 
-class TestAutoproveRoundTrip(unittest.TestCase):
 
+class TestAutoproveRoundTrip(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp(prefix="hook_autoprove_")
 
@@ -331,8 +340,8 @@ class TestAutoproveRoundTrip(unittest.TestCase):
 # Fail-open tests
 # ═══════════════════════════════════════════════════════════════════════════
 
-class TestFailOpen(unittest.TestCase):
 
+class TestFailOpen(unittest.TestCase):
     def test_import_broken_fail_open(self):
         """Hook with no lib/command_args on path emits fail-open warning."""
         tmpdir = tempfile.mkdtemp(prefix="hook_failopen_import_")
@@ -342,11 +351,13 @@ class TestFailOpen(unittest.TestCase):
             shutil.copy2(HOOK, isolated_hook)
             os.chmod(isolated_hook, 0o755)
 
-            payload = json.dumps({
-                "session_id": "test-failopen",
-                "cwd": tmpdir,
-                "prompt": "/lean4:draft \"hello\"",
-            })
+            payload = json.dumps(
+                {
+                    "session_id": "test-failopen",
+                    "cwd": tmpdir,
+                    "prompt": '/lean4:draft "hello"',
+                }
+            )
 
             # Build a hermetic env: scrub PYTHONPATH, CLAUDE_PLUGIN_ROOT,
             # set PYTHONNOUSERSITE=1 so no user-site packages sneak in.
@@ -413,11 +424,13 @@ class TestFailOpen(unittest.TestCase):
             with open(os.path.join(pkg_dir, "__init__.py"), "w") as f:
                 f.write(init_content)
 
-            payload = json.dumps({
-                "session_id": "test-crash",
-                "cwd": tmpdir,
-                "prompt": "/lean4:draft \"hello\"",
-            })
+            payload = json.dumps(
+                {
+                    "session_id": "test-crash",
+                    "cwd": tmpdir,
+                    "prompt": '/lean4:draft "hello"',
+                }
+            )
 
             env = {}
             for k, v in os.environ.items():
