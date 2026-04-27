@@ -1,5 +1,8 @@
-#!/usr/bin/env python3
-"""
+#!/usr/bin/env sh
+""":"
+exec "${LEAN4_PYTHON_BIN:-python3}" "$0" "$@"
+":"
+
 Find proof-golfing opportunities in Lean 4 files.
 
 Identifies optimization patterns with estimated reduction potential.

@@ -1,5 +1,8 @@
-#!/usr/bin/env python3
-"""
+#!/usr/bin/env sh
+""":"
+exec "${LEAN4_PYTHON_BIN:-python3}" "$0" "$@"
+":"
+
 sorry_analyzer.py - Extract and analyze sorry statements in Lean 4 code
 
 Usage:

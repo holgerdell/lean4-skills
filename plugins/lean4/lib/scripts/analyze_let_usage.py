@@ -1,5 +1,8 @@
-#!/usr/bin/env python3
-"""
+#!/usr/bin/env sh
+""":"
+exec "${LEAN4_PYTHON_BIN:-python3}" "$0" "$@"
+":"
+
 Analyze let binding usage to detect false-positive optimization candidates.
 
 Helps avoid the #1 pitfall: inlining let bindings that are used multiple times,

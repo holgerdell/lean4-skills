@@ -139,7 +139,10 @@ For CI automation, use `codex exec` with structured output. See [review.md](../.
 ### Example Custom Hook Script
 
 ```python
-#!/usr/bin/env python3
+#!/usr/bin/env sh
+""":"
+exec "${LEAN4_PYTHON_BIN:-python3}" "$0" "$@"
+":"""
 """
 Example INTERNAL hook for /lean4:review --hook=./my_hook.py
 

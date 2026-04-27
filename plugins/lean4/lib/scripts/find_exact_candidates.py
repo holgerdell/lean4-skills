@@ -1,5 +1,8 @@
-#!/usr/bin/env python3
-"""
+#!/usr/bin/env sh
+""":"
+exec "${LEAN4_PYTHON_BIN:-python3}" "$0" "$@"
+":"
+
 Find proof blocks that are good candidates for `exact?` replacement.
 
 Scans Lean 4 files for short tactic proofs (2-8 lines) where replacing

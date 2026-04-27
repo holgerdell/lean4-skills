@@ -1,5 +1,8 @@
-#!/usr/bin/env python3
-"""Deterministic test for benefit-based sort order in find_golfable.py.
+#!/usr/bin/env sh
+""":"
+exec "${LEAN4_PYTHON_BIN:-python3}" "$0" "$@"
+":"
+Deterministic test for benefit-based sort order in find_golfable.py.
 
 Validates that analyze_file() returns patterns sorted by policy order:
   directness → performance → structural → conditional
