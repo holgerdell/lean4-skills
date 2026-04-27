@@ -30,6 +30,7 @@ Examples:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -274,7 +275,7 @@ def format_markdown(sorries: list[Sorry]) -> str:
     output.append(f"**Total sorries found:** {len(sorries)}\n")
 
     # Group by file
-    by_file = {}
+    by_file: dict[str, list[Sorry]] = {}
     for sorry in sorries:
         by_file.setdefault(sorry.file, []).append(sorry)
 
@@ -316,7 +317,7 @@ def format_summary(sorries: list[Sorry]) -> str:
     """Format sorries as a brief summary (file counts + total)"""
     output = []
     # Group by file
-    by_file = {}
+    by_file: dict[str, list[Sorry]] = {}
     for sorry in sorries:
         by_file.setdefault(sorry.file, []).append(sorry)
 
@@ -329,14 +330,14 @@ def format_summary(sorries: list[Sorry]) -> str:
     return "\n".join(output)
 
 
-def interactive_mode(sorries: list[Sorry]):
+def interactive_mode(sorries: list[Sorry]) -> None:
     """Interactive mode to navigate and select sorries"""
     if not sorries:
         print("No sorries found!")
         return
 
     # Group by file
-    by_file = {}
+    by_file: dict[str, list[Sorry]] = {}
     for sorry in sorries:
         by_file.setdefault(sorry.file, []).append(sorry)
 
@@ -371,7 +372,7 @@ def interactive_mode(sorries: list[Sorry]):
             break
 
 
-def show_file_sorries(filepath: str, sorries: list[Sorry]):
+def show_file_sorries(filepath: str, sorries: list[Sorry]) -> None:
     """Show sorries in a specific file with navigation"""
     print(f"\n{'=' * 80}")
     print(f"File: {filepath}")
@@ -403,7 +404,7 @@ def show_file_sorries(filepath: str, sorries: list[Sorry]):
                     idx = int(choice.split()[1]) - 1
                     if 0 <= idx < len(sorries):
                         sorry = sorries[idx]
-                        editor = subprocess.os.environ.get("EDITOR", "vim")
+                        editor = os.environ.get("EDITOR", "vim")
                         subprocess.call([editor, f"+{sorry.line}", sorry.file])
                     else:
                         print("Invalid selection")
@@ -420,7 +421,7 @@ def show_file_sorries(filepath: str, sorries: list[Sorry]):
             sys.exit(0)
 
 
-def show_sorry_details(sorry: Sorry):
+def show_sorry_details(sorry: Sorry) -> None:
     """Show detailed information about a specific sorry"""
     print(f"\n{'─' * 80}")
     print(f"Sorry at {sorry.file}:{sorry.line}")
@@ -445,7 +446,7 @@ def show_sorry_details(sorry: Sorry):
     input("\nPress Enter to continue...")
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
