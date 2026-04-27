@@ -20,20 +20,18 @@ import tempfile
 import unittest
 from pathlib import Path
 
+# Ensure lib is importable for direct parse_invocation calls.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
+
+from command_args import COMMAND_SPECS, parse_invocation
+from command_args.formatter import format_validated_block, parse_validated_block
+
 # ---------------------------------------------------------------------------
 # Module-scope constants
 # ---------------------------------------------------------------------------
 
 _PLUGIN_ROOT = Path(__file__).resolve().parents[2]
 HOOK = str((_PLUGIN_ROOT / "hooks" / "validate_user_prompt.py").resolve(strict=True))
-
-# Ensure lib is importable for direct parse_invocation calls.
-_LIB = str(_PLUGIN_ROOT / "lib")
-if _LIB not in sys.path:
-    sys.path.insert(0, _LIB)
-
-from command_args import COMMAND_SPECS, parse_invocation
-from command_args.formatter import format_validated_block, parse_validated_block
 
 
 # ---------------------------------------------------------------------------
