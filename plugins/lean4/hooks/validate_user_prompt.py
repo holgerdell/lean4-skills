@@ -9,6 +9,8 @@ Fails OPEN on any internal error — a Python bug must NEVER prevent
 a user from running a command.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys
@@ -85,7 +87,7 @@ def main() -> None:
 
     # 5. Import command_args (fail-open on import failure)
     try:
-        from command_args import COMMAND_SPECS, parse_invocation, format_validated_block
+        from command_args import COMMAND_SPECS, format_validated_block, parse_invocation
     except Exception:
         return _emit_warning(
             "[lean4 parser unavailable — fell back to model parsing. "

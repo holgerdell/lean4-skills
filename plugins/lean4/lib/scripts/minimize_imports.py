@@ -27,15 +27,16 @@ Notes:
     - May take several minutes for files with many imports
 """
 
+from __future__ import annotations
+
 import re
-import sys
-import subprocess
 import shutil
+import subprocess
+import sys
 from pathlib import Path
-from typing import List, Tuple
 
 
-def extract_imports(content: str) -> List[Tuple[int, str]]:
+def extract_imports(content: str) -> list[tuple[int, str]]:
     """Extract all import statements with their line numbers (1-indexed)"""
     imports = []
     lines = content.split("\n")
@@ -55,7 +56,7 @@ def remove_import_line(content: str, line_num: int) -> str:
     return "\n".join(lines)
 
 
-def check_compiles(filepath: Path, verbose: bool = False) -> Tuple[bool, str]:
+def check_compiles(filepath: Path, verbose: bool = False) -> tuple[bool, str]:
     """Check if the file compiles using lake env lean"""
     try:
         result = subprocess.run(
@@ -93,7 +94,7 @@ def minimize_imports(
     print(f"Analyzing imports in {filepath}")
 
     # Read original content
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         original_content = f.read()
 
     # Extract imports

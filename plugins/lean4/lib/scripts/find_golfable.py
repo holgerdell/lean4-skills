@@ -5,11 +5,13 @@ Find proof-golfing opportunities in Lean 4 files.
 Identifies optimization patterns with estimated reduction potential.
 """
 
+from __future__ import annotations
+
 import re
 import sys
-from pathlib import Path
-from typing import Iterable, List, Tuple, Optional
+from collections.abc import Iterable
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass
@@ -26,7 +28,7 @@ class GolfablePattern:
     benefit: str = "conditional"  # directness | structural | conditional
 
 
-def count_lines_in_range(lines: List[str], start_idx: int, end_idx: int) -> int:
+def count_lines_in_range(lines: list[str], start_idx: int, end_idx: int) -> int:
     """Count non-empty, non-comment lines in a range."""
     count = 0
     for i in range(start_idx, min(end_idx, len(lines))):
@@ -36,7 +38,7 @@ def count_lines_in_range(lines: List[str], start_idx: int, end_idx: int) -> int:
     return count
 
 
-def count_binding_uses(lines: List[str], binding_name: str, start_idx: int) -> int:
+def count_binding_uses(lines: list[str], binding_name: str, start_idx: int) -> int:
     """Count how many times a binding is used after its definition."""
     uses = 0
     for i in range(start_idx, len(lines)):
@@ -51,8 +53,8 @@ def count_binding_uses(lines: List[str], binding_name: str, start_idx: int) -> i
 
 
 def find_let_have_exact(
-    file_path: Path, lines: List[str], filter_multi_use: bool = False
-) -> List[GolfablePattern]:
+    file_path: Path, lines: list[str], filter_multi_use: bool = False
+) -> list[GolfablePattern]:
     """Find let + have + exact patterns.
 
     Structural simplification (60-80% reduction). Verify binding usage before applying.
@@ -80,68 +82,70 @@ def find_let_have_exact(
                 # Match have statements (supports: have x :, have x :=)
                 if re.match(r"have\s+\w+\s*(?::|:=)", next_line):
                     has_have = True
-                if next_line.startswith("exact "):
-                    if has_have:
-                        # Check if this is a false positive (multiple uses)
-                        if filter_multi_use:
-                            uses = count_binding_uses(lines, let_name, i)
-                            if uses >= 3:
-                                # FALSE POSITIVE - skip this one
-                                i = j
-                                break
+                if next_line.startswith("exact ") and has_have:
+                    # Check if this is a false positive (multiple uses)
+                    if filter_multi_use:
+                        uses = count_binding_uses(lines, let_name, i)
+                        if uses >= 3:
+                            # FALSE POSITIVE - skip this one
+                            i = j
+                            break
 
-                        # Found the pattern!
-                        line_count = count_lines_in_range(lines, i, j + 1)
-                        snippet = "\n".join(lines[i : min(j + 3, len(lines))])
+                    # Found the pattern!
+                    line_count = count_lines_in_range(lines, i, j + 1)
+                    snippet = "\n".join(lines[i : min(j + 3, len(lines))])
 
-                        patterns.append(
-                            GolfablePattern(
-                                pattern_type="let + have + exact",
-                                file_path=str(file_path),
-                                line_number=i + 1,  # 1-indexed
-                                line_count=line_count,
-                                snippet=snippet[:200] + "..."
-                                if len(snippet) > 200
-                                else snippet,
-                                reduction_estimate="60-80%",
-                                priority="HIGH",
-                                benefit="structural",
-                            )
+                    patterns.append(
+                        GolfablePattern(
+                            pattern_type="let + have + exact",
+                            file_path=str(file_path),
+                            line_number=i + 1,  # 1-indexed
+                            line_count=line_count,
+                            snippet=snippet[:200] + "..."
+                            if len(snippet) > 200
+                            else snippet,
+                            reduction_estimate="60-80%",
+                            priority="HIGH",
+                            benefit="structural",
                         )
-                        i = j
-                        break
+                    )
+                    i = j
+                    break
         i += 1
 
     return patterns
 
 
-def find_by_exact(file_path: Path, lines: List[str]) -> List[GolfablePattern]:
+def find_by_exact(file_path: Path, lines: list[str]) -> list[GolfablePattern]:
     """Find 'by exact' wrapper patterns."""
     patterns = []
 
     for i, line in enumerate(lines):
         # Look for lines ending with "by" followed by "exact" on next line
-        if re.search(r":=\s*by\s*$", line.strip()):
-            if i + 1 < len(lines) and lines[i + 1].strip().startswith("exact "):
-                snippet = f"{line.strip()}\n  {lines[i + 1].strip()}"
+        if (
+            re.search(r":=\s*by\s*$", line.strip())
+            and i + 1 < len(lines)
+            and lines[i + 1].strip().startswith("exact ")
+        ):
+            snippet = f"{line.strip()}\n  {lines[i + 1].strip()}"
 
-                patterns.append(
-                    GolfablePattern(
-                        pattern_type="by exact wrapper",
-                        file_path=str(file_path),
-                        line_number=i + 1,
-                        line_count=2,
-                        snippet=snippet,
-                        reduction_estimate="50%",
-                        priority="MEDIUM",
-                        benefit="directness",
-                    )
+            patterns.append(
+                GolfablePattern(
+                    pattern_type="by exact wrapper",
+                    file_path=str(file_path),
+                    line_number=i + 1,
+                    line_count=2,
+                    snippet=snippet,
+                    reduction_estimate="50%",
+                    priority="MEDIUM",
+                    benefit="directness",
                 )
+            )
 
     return patterns
 
 
-def find_calc_chains(file_path: Path, lines: List[str]) -> List[GolfablePattern]:
+def find_calc_chains(file_path: Path, lines: list[str]) -> list[GolfablePattern]:
     """Find calc chains with 'by' tactics that might simplify."""
     patterns = []
     i = 0
@@ -183,8 +187,8 @@ def find_calc_chains(file_path: Path, lines: List[str]) -> List[GolfablePattern]
 
 
 def find_constructor_branches(
-    file_path: Path, lines: List[str]
-) -> List[GolfablePattern]:
+    file_path: Path, lines: list[str]
+) -> list[GolfablePattern]:
     """Find constructor branches with multiple lines."""
     patterns = []
     i = 0
@@ -223,7 +227,7 @@ def find_constructor_branches(
     return patterns
 
 
-def find_multiple_haves(file_path: Path, lines: List[str]) -> List[GolfablePattern]:
+def find_multiple_haves(file_path: Path, lines: list[str]) -> list[GolfablePattern]:
     """Find proofs with 5+ consecutive 'have' statements."""
     patterns = []
     i = 0
@@ -260,7 +264,7 @@ def find_multiple_haves(file_path: Path, lines: List[str]) -> List[GolfablePatte
     return patterns
 
 
-def find_have_calc(file_path: Path, lines: List[str]) -> List[GolfablePattern]:
+def find_have_calc(file_path: Path, lines: list[str]) -> list[GolfablePattern]:
     """Find have statements used once in immediately following calc chain.
 
     Pattern:
@@ -377,7 +381,7 @@ def find_have_calc(file_path: Path, lines: List[str]) -> List[GolfablePattern]:
     return patterns
 
 
-def find_apply_exact_chains(file_path: Path, lines: List[str]) -> List[GolfablePattern]:
+def find_apply_exact_chains(file_path: Path, lines: list[str]) -> list[GolfablePattern]:
     """Find apply/exact chains that can be collapsed into single exact terms.
 
     Detects blocks starting with 'apply' that contain 'exact' on branches,
@@ -395,7 +399,7 @@ def find_apply_exact_chains(file_path: Path, lines: List[str]) -> List[GolfableP
     BRANCH_RE = re.compile(r"^\s*(?:·\s*(?:cases|induction|match)\b|\|\s*\w+)")
 
     # Pre-scan for calc block ranges to skip
-    calc_ranges: List[Tuple[int, int]] = []
+    calc_ranges: list[tuple[int, int]] = []
     for idx, line in enumerate(lines):
         stripped = line.strip()
         if stripped.startswith("calc ") or stripped == "calc":
@@ -418,10 +422,7 @@ def find_apply_exact_chains(file_path: Path, lines: List[str]) -> List[GolfableP
             calc_ranges.append((calc_start, calc_end))
 
     def in_calc(line_idx: int) -> bool:
-        for start, end in calc_ranges:
-            if start <= line_idx < end:
-                return True
-        return False
+        return any(start <= line_idx < end for start, end in calc_ranges)
 
     def in_multi_goal_context(line_idx: int) -> bool:
         """Check if line is inside a cases/induction/match block.
@@ -469,7 +470,7 @@ def find_apply_exact_chains(file_path: Path, lines: List[str]) -> List[GolfableP
             i += 1
             continue
 
-        # Found apply — look ahead 1–6 lines for exact on branches
+        # Found apply — look ahead 1-6 lines for exact on branches
         block_start = i
         block_end = i + 1
         has_exact = False
@@ -508,7 +509,7 @@ def find_apply_exact_chains(file_path: Path, lines: List[str]) -> List[GolfableP
             continue
 
         block_line_count = block_end - block_start
-        # Filter: 2–7 tactic lines
+        # Filter: 2-7 tactic lines
         if block_line_count < 2 or block_line_count > 7:
             i += 1
             continue
@@ -574,9 +575,9 @@ def _sort_key(p: GolfablePattern) -> tuple:
 
 def analyze_file(
     file_path: Path,
-    pattern_types: Optional[List[str]] = None,
+    pattern_types: list[str] | None = None,
     filter_false_positives: bool = False,
-) -> List[GolfablePattern]:
+) -> list[GolfablePattern]:
     """Analyze a file for optimization patterns.
 
     Args:
@@ -586,7 +587,7 @@ def analyze_file(
     if not file_path.exists():
         return []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         lines = f.readlines()
 
     all_patterns = []
@@ -630,9 +631,9 @@ def analyze_file(
 
 def analyze_files(
     files: Iterable[Path],
-    pattern_types: Optional[List[str]] = None,
+    pattern_types: list[str] | None = None,
     filter_false_positives: bool = False,
-) -> List[GolfablePattern]:
+) -> list[GolfablePattern]:
     """Analyze multiple files and return globally sorted patterns.
 
     Files are iterated in sorted order for deterministic output.
@@ -646,7 +647,7 @@ def analyze_files(
     return all_patterns
 
 
-def format_output(patterns: List[GolfablePattern], verbose: bool = False) -> str:
+def format_output(patterns: list[GolfablePattern], verbose: bool = False) -> str:
     """Format patterns for display."""
     if not patterns:
         return "No optimization opportunities found."

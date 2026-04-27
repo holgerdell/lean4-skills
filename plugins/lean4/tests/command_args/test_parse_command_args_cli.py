@@ -4,6 +4,8 @@ Exercises the lib/scripts/parse_command_args.py sys.path bootstrap
 from a clean cwd with no PYTHONPATH.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import subprocess
@@ -33,7 +35,7 @@ class TestStandaloneCLI(unittest.TestCase):
         if env_override:
             env.update(env_override)
         return subprocess.run(
-            [sys.executable, CLI] + args,
+            [sys.executable, CLI, *args],
             capture_output=True,
             text=True,
             cwd=cwd or tempfile.gettempdir(),

@@ -15,6 +15,8 @@ Run:
     python3 plugins/lean4/lib/scripts/tests/test_ordering.py
 """
 
+from __future__ import annotations
+
 import sys
 import tempfile
 import unittest
@@ -23,7 +25,6 @@ from pathlib import Path
 # Allow import from parent directory
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from find_golfable import analyze_file, analyze_files
-
 
 # Lean fixture with patterns from each benefit category.
 # Deliberately places apply-exact-chain BEFORE by-exact in the file
@@ -60,11 +61,10 @@ class TestBenefitOrdering(unittest.TestCase):
     """Patterns are returned in policy order: directness, structural, conditional."""
 
     def setUp(self):
-        f = tempfile.NamedTemporaryFile(suffix=".lean", mode="w", delete=False)
-        f.write(FIXTURE)
-        f.flush()
-        f.close()
-        self.path = Path(f.name)
+        with tempfile.NamedTemporaryFile(suffix=".lean", mode="w", delete=False) as f:
+            f.write(FIXTURE)
+            f.flush()
+            self.path = Path(f.name)
         self.patterns = analyze_file(self.path)
 
     def tearDown(self):

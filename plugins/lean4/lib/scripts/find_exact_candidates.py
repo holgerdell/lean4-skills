@@ -12,11 +12,12 @@ Usage:
     python3 find_exact_candidates.py . --priority high
 """
 
+from __future__ import annotations
+
 import re
 import sys
-from pathlib import Path
 from dataclasses import dataclass
-from typing import List
+from pathlib import Path
 
 
 @dataclass
@@ -28,13 +29,13 @@ class ProofBlock:
     line_start: int  # line of `:= by` or `by` (1-indexed)
     line_end: int  # last tactic line (1-indexed)
     tactic_count: int  # number of tactic steps
-    tactics: List[str]  # the tactic lines
+    tactics: list[str]  # the tactic lines
     category: str  # classification
     priority: str  # high/medium/low
     reason: str  # why it's a candidate
 
 
-def find_proof_end(lines: List[str], start_idx: int, base_indent: int) -> int:
+def find_proof_end(lines: list[str], start_idx: int, base_indent: int) -> int:
     """Find the end of a tactic proof block by tracking indentation."""
     i = start_idx + 1
     while i < len(lines):
@@ -53,7 +54,7 @@ def find_proof_end(lines: List[str], start_idx: int, base_indent: int) -> int:
     return i - 1
 
 
-def get_tactic_lines(lines: List[str], start: int, end: int) -> List[str]:
+def get_tactic_lines(lines: list[str], start: int, end: int) -> list[str]:
     """Extract non-empty, non-comment tactic lines from a range."""
     result = []
     for i in range(start, end + 1):
@@ -63,7 +64,7 @@ def get_tactic_lines(lines: List[str], start: int, end: int) -> List[str]:
     return result
 
 
-def classify_proof(tactics: List[str]) -> tuple:
+def classify_proof(tactics: list[str]) -> tuple:
     """Classify a proof block and estimate exact? likelihood.
 
     Returns (category, priority, reason).
@@ -172,7 +173,7 @@ def classify_proof(tactics: List[str]) -> tuple:
 
 def find_candidates(
     file_path: Path, min_lines: int = 2, max_lines: int = 8
-) -> List[ProofBlock]:
+) -> list[ProofBlock]:
     """Find proof blocks that are candidates for exact? replacement."""
     lines = file_path.read_text().splitlines()
     candidates = []

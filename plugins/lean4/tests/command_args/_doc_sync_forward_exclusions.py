@@ -13,6 +13,8 @@ This list must stay under ~10 entries. If it grows much larger, reconsider
 either the parser's I/O budget or the doc format.
 """
 
+from __future__ import annotations
+
 EXCLUSIONS: list[tuple[str, str]] = [
     # --- Class (a): file-content I/O beyond os.path.exists ---
     # .gitignore hints — requires reading .gitignore

@@ -20,13 +20,13 @@ Inspired by APOLLO's compiler-feedback-driven repair approach
 https://arxiv.org/abs/2505.05758
 """
 
+from __future__ import annotations
+
+import hashlib
 import json
 import re
 import sys
-import hashlib
 from pathlib import Path
-from typing import Optional
-
 
 ERROR_PATTERNS = [
     (r"type mismatch", "type_mismatch"),
@@ -42,7 +42,7 @@ ERROR_PATTERNS = [
 ]
 
 
-def parse_location(line: str) -> Optional[dict]:
+def parse_location(line: str) -> dict | None:
     """Extract file:line:column from error line.
 
     Handles both Unix paths (/path/to/file.lean:10:5:)
@@ -68,7 +68,7 @@ def classify_error(message: str) -> str:
     return "unknown"
 
 
-def extract_goal(error_text: str) -> Optional[str]:
+def extract_goal(error_text: str) -> str | None:
     """Extract goal state from error (if present)."""
     # Look for lines starting with ⊢
     goal_match = re.search(r"⊢\s+(.+)", error_text)

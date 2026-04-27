@@ -6,11 +6,12 @@ Helps avoid the #1 pitfall: inlining let bindings that are used multiple times,
 which actually INCREASES token count instead of reducing it.
 """
 
+from __future__ import annotations
+
 import re
 import sys
-from pathlib import Path
-from typing import List, Tuple, Optional
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass
@@ -22,7 +23,7 @@ class LetBinding:
     definition: str
     definition_tokens: int
     uses_count: int
-    use_locations: List[int]
+    use_locations: list[int]
     recommendation: str
     token_impact: str
 
@@ -38,7 +39,7 @@ def count_tokens(text: str) -> int:
     return tokens
 
 
-def find_let_bindings(file_path: Path) -> List[Tuple[int, str, str]]:
+def find_let_bindings(file_path: Path) -> list[tuple[int, str, str]]:
     """Find all let bindings in file with their definitions.
 
     Note: This handles single-line let bindings well. Multi-line let definitions
@@ -48,7 +49,7 @@ def find_let_bindings(file_path: Path) -> List[Tuple[int, str, str]]:
     if not file_path.exists():
         return []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         lines = f.readlines()
 
     bindings = []
@@ -93,9 +94,9 @@ def find_let_bindings(file_path: Path) -> List[Tuple[int, str, str]]:
 
 def count_binding_uses(
     file_path: Path, binding_name: str, def_line: int
-) -> Tuple[int, List[int]]:
+) -> tuple[int, list[int]]:
     """Count how many times a binding is used after its definition."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         lines = f.readlines()
 
     uses = 0
@@ -174,7 +175,7 @@ def analyze_binding(
     )
 
 
-def analyze_file(file_path: Path, verbose: bool = False) -> List[LetBinding]:
+def analyze_file(file_path: Path, verbose: bool = False) -> list[LetBinding]:
     """Analyze all let bindings in a file."""
     bindings_data = find_let_bindings(file_path)
 
@@ -187,7 +188,7 @@ def analyze_file(file_path: Path, verbose: bool = False) -> List[LetBinding]:
 
 
 def format_output(
-    file_path: Path, bindings: List[LetBinding], verbose: bool = False
+    file_path: Path, bindings: list[LetBinding], verbose: bool = False
 ) -> str:
     """Format analysis results."""
     if not bindings:
@@ -283,7 +284,7 @@ def format_output(
     return "\n".join(output)
 
 
-def analyze_specific_binding(file_path: Path, line_number: int) -> Optional[str]:
+def analyze_specific_binding(file_path: Path, line_number: int) -> str | None:
     """Analyze a specific let binding at given line number."""
     bindings = find_let_bindings(file_path)
 
@@ -307,13 +308,13 @@ def analyze_specific_binding(file_path: Path, line_number: int) -> Optional[str]
                 f"  Current: ~{binding.definition_tokens + binding.uses_count * 2} tokens"
             )
             output.append(
-                f"           ({binding.definition_tokens} def + {binding.uses_count} × 2 uses)"
+                f"           ({binding.definition_tokens} def + {binding.uses_count} × 2 uses)"  # noqa: RUF001
             )
             output.append(
                 f"  Inlined: ~{binding.definition_tokens * binding.uses_count} tokens"
             )
             output.append(
-                f"           ({binding.definition_tokens} × {binding.uses_count} repetitions)"
+                f"           ({binding.definition_tokens} × {binding.uses_count} repetitions)"  # noqa: RUF001
             )
             output.append(f"  {binding.token_impact}\n")
             output.append(f"{'─' * 70}")

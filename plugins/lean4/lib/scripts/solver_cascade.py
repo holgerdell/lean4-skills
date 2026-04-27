@@ -21,12 +21,12 @@ Inspired by APOLLO's solver-first strategy
 https://arxiv.org/abs/2505.05758
 """
 
-import json
-import sys
-import subprocess
-from pathlib import Path
-from typing import Optional
+from __future__ import annotations
 
+import json
+import subprocess
+import sys
+from pathlib import Path
 
 SOLVERS = [
     ("rfl", 1),
@@ -44,7 +44,7 @@ SOLVERS = [
 
 def try_solver(
     file_path: Path, line: int, column: int, solver: str, timeout: int
-) -> Optional[str]:
+) -> str | None:
     """
     Try inserting solver tactic at given location.
     Returns diff if compilation succeeds.
@@ -108,7 +108,7 @@ def try_solver(
         tmp_path.unlink(missing_ok=True)
 
 
-def run_solver_cascade(context: dict, file_path: Path) -> Optional[str]:
+def run_solver_cascade(context: dict, file_path: Path) -> str | None:
     """Run solver cascade, return diff if any succeeds."""
     line = context.get("line", 1)  # Default to line 1 if not specified
     column = context.get("column", 0)

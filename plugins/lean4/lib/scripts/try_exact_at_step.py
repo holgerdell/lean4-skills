@@ -18,13 +18,14 @@ os.replace. A persistent .bak file is written first and cleaned up only
 after successful restore, so interruptions leave a recoverable backup.
 """
 
-import re
-import sys
+from __future__ import annotations
+
 import os
-import subprocess
+import re
 import shutil
+import subprocess
+import sys
 from pathlib import Path
-from typing import Optional, Tuple, List
 
 
 def find_project_root(start: Path) -> Path:
@@ -42,8 +43,8 @@ def find_project_root(start: Path) -> Path:
 
 
 def find_proof_bounds(
-    lines: List[str], target_line: int
-) -> Optional[Tuple[int, int, int]]:
+    lines: list[str], target_line: int
+) -> tuple[int, int, int] | None:
     """Find the start (by line), end, and base indent of the proof containing target_line.
 
     Returns (by_line_idx, end_idx, base_indent) — all 0-indexed.
@@ -82,7 +83,7 @@ def find_proof_bounds(
     return by_idx, end_idx, base_indent
 
 
-def replace_proof_with_exact_q(lines: List[str], by_line_idx: int, end_idx: int) -> str:
+def replace_proof_with_exact_q(lines: list[str], by_line_idx: int, end_idx: int) -> str:
     """Replace proof body with exact? and return the modified content."""
     # Determine the indentation of the first tactic line
     tactic_indent = "  "
@@ -102,7 +103,7 @@ def replace_proof_with_exact_q(lines: List[str], by_line_idx: int, end_idx: int)
 
 def run_lean_and_capture(
     lean_file: Path, target_line: int, project_root: Path, timeout: int = 120
-) -> Optional[str]:
+) -> str | None:
     """Run Lean on a file and capture exact? suggestions.
 
     Only accepts diagnostics whose file path matches lean_file exactly
@@ -186,7 +187,7 @@ def test_exact_at(
             "suggestion": f"ERROR: no enclosing `by` block found near line {target_line}",
             "saved_lines": 0,
         }
-    by_idx, end_idx, base_indent = bounds
+    by_idx, end_idx, _base_indent = bounds
 
     # Extract original tactics for reporting
     original_tactics = []

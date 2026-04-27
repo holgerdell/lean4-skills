@@ -27,13 +27,14 @@ Examples:
     ./sorry_analyzer.py . --format=detail            # alias for text
 """
 
-import re
-import sys
+from __future__ import annotations
+
 import json
+import re
 import subprocess
+import sys
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from dataclasses import dataclass, asdict
-from typing import List, Optional, Tuple
 
 
 @dataclass
@@ -42,10 +43,10 @@ class Sorry:
 
     file: str
     line: int
-    context_before: List[str]
-    context_after: List[str]
-    documentation: List[str]
-    in_declaration: Optional[str] = None
+    context_before: list[str]
+    context_after: list[str]
+    documentation: list[str]
+    in_declaration: str | None = None
 
 
 SORRY_TOKEN_PATTERN = re.compile(r"(?<![A-Za-z0-9_!?'])sorry(?![A-Za-z0-9_!?'])")
@@ -53,7 +54,7 @@ SORRY_TOKEN_PATTERN = re.compile(r"(?<![A-Za-z0-9_!?'])sorry(?![A-Za-z0-9_!?'])"
 
 def strip_lean_comments_and_strings(
     line: str, block_comment_depth: int
-) -> Tuple[str, int]:
+) -> tuple[str, int]:
     """Return code-only text for a line and updated Lean block-comment depth.
 
     Handles:
@@ -61,7 +62,7 @@ def strip_lean_comments_and_strings(
     - nested block comments: /- ... -/
     - string literals: "..."
     """
-    result: List[str] = []
+    result: list[str] = []
     i = 0
     n = len(line)
     in_string = False
@@ -110,7 +111,7 @@ def strip_lean_comments_and_strings(
     return "".join(result), block_comment_depth
 
 
-def extract_declaration_name(lines: List[str], sorry_idx: int) -> Optional[str]:
+def extract_declaration_name(lines: list[str], sorry_idx: int) -> str | None:
     """Extract the theorem/lemma/def name containing this sorry"""
     # Search backwards for declaration
     # Support Unicode and qualified names (e.g., Foo.bar, foo', foo'')
@@ -126,7 +127,7 @@ def extract_declaration_name(lines: List[str], sorry_idx: int) -> Optional[str]:
     return None
 
 
-def extract_documentation(lines: List[str], sorry_idx: int) -> List[str]:
+def extract_documentation(lines: list[str], sorry_idx: int) -> list[str]:
     """Extract TODO/NOTE comments near the sorry"""
     docs = []
     keywords = ["TODO", "NOTE", "FIXME", "STRATEGY", "DEPENDENCIES"]
@@ -151,10 +152,10 @@ def extract_documentation(lines: List[str], sorry_idx: int) -> List[str]:
     return docs
 
 
-def find_sorries_in_file(filepath: Path) -> List[Sorry]:
+def find_sorries_in_file(filepath: Path) -> list[Sorry]:
     """Find all sorries in a single Lean file"""
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             lines = f.readlines()
     except Exception as e:
         print(f"Warning: Could not read {filepath}: {e}", file=sys.stderr)
@@ -198,7 +199,7 @@ def find_sorries_in_file(filepath: Path) -> List[Sorry]:
     return sorries
 
 
-def find_sorries(target: Path, include_deps: bool = False) -> List[Sorry]:
+def find_sorries(target: Path, include_deps: bool = False) -> list[Sorry]:
     """Find all sorries in target file or directory
 
     Args:
@@ -239,7 +240,7 @@ def find_sorries(target: Path, include_deps: bool = False) -> List[Sorry]:
         raise ValueError(f"{target} is not a file or directory")
 
 
-def format_text(sorries: List[Sorry]) -> str:
+def format_text(sorries: list[Sorry]) -> str:
     """Format sorries as human-readable text"""
     output = []
     output.append(f"Found {len(sorries)} sorry statement(s)\n")
@@ -266,7 +267,7 @@ def format_text(sorries: List[Sorry]) -> str:
     return "\n".join(output)
 
 
-def format_markdown(sorries: List[Sorry]) -> str:
+def format_markdown(sorries: list[Sorry]) -> str:
     """Format sorries as Markdown"""
     output = []
     output.append("# Sorry Analysis Report\n")
@@ -304,14 +305,14 @@ def format_markdown(sorries: List[Sorry]) -> str:
     return "\n".join(output)
 
 
-def format_json(sorries: List[Sorry]) -> str:
+def format_json(sorries: list[Sorry]) -> str:
     """Format sorries as JSON"""
     return json.dumps(
         {"total_count": len(sorries), "sorries": [asdict(s) for s in sorries]}, indent=2
     )
 
 
-def format_summary(sorries: List[Sorry]) -> str:
+def format_summary(sorries: list[Sorry]) -> str:
     """Format sorries as a brief summary (file counts + total)"""
     output = []
     # Group by file
@@ -328,7 +329,7 @@ def format_summary(sorries: List[Sorry]) -> str:
     return "\n".join(output)
 
 
-def interactive_mode(sorries: List[Sorry]):
+def interactive_mode(sorries: list[Sorry]):
     """Interactive mode to navigate and select sorries"""
     if not sorries:
         print("No sorries found!")
@@ -370,7 +371,7 @@ def interactive_mode(sorries: List[Sorry]):
             break
 
 
-def show_file_sorries(filepath: str, sorries: List[Sorry]):
+def show_file_sorries(filepath: str, sorries: list[Sorry]):
     """Show sorries in a specific file with navigation"""
     print(f"\n{'=' * 80}")
     print(f"File: {filepath}")

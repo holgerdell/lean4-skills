@@ -10,6 +10,8 @@ Exit codes:
     2 — validation error (prints error JSON to stdout)
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys
@@ -19,7 +21,7 @@ _LIB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _LIB_ROOT not in sys.path:
     sys.path.insert(0, _LIB_ROOT)
 
-from command_args import COMMAND_SPECS, parse_invocation  # noqa: E402
+from command_args import COMMAND_SPECS, parse_invocation
 
 
 def main() -> int:

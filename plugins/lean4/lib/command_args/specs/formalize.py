@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
 
+from ..coercions import intent_auto_collapse
 from ..types import (
     Coercion,
     CommandSpec,
@@ -12,9 +13,7 @@ from ..types import (
     ParseContext,
     PositionalSpec,
 )
-from ..coercions import intent_auto_collapse
 from . import _common
-
 
 # ---------------------------------------------------------------------------
 # Formalize-specific coercions

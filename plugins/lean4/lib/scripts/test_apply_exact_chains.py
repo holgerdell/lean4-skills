@@ -5,6 +5,8 @@ Run from the repo root:
     python3 plugins/lean4/lib/scripts/test_apply_exact_chains.py
 """
 
+from __future__ import annotations
+
 import sys
 import tempfile
 from pathlib import Path

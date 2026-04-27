@@ -97,10 +97,7 @@ def parse_invocation(spec: CommandSpec, raw_tail: str, *, cwd: str) -> ParseResu
     # Build the raw options dict for coercions/validations to read
     raw_options: dict[str, object] = {}
     for fs in spec.flags:
-        if fs.name in raw_flags:
-            raw_options[fs.name] = raw_flags[fs.name]
-        else:
-            raw_options[fs.name] = fs.default
+        raw_options[fs.name] = raw_flags.get(fs.name, fs.default)
 
     # Validate and resolve each flag
     for fs in spec.flags:

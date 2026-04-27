@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
 
 from ..types import (
     Coercion,
@@ -13,7 +13,6 @@ from ..types import (
     PositionalSpec,
 )
 from . import _common
-
 
 # ---------------------------------------------------------------------------
 # Learn-specific coercions

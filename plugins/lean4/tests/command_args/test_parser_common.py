@@ -1,5 +1,7 @@
 """Layer 1 parser golden tests for cross-command / structural behaviour."""
 
+from __future__ import annotations
+
 import json
 import os
 import sys

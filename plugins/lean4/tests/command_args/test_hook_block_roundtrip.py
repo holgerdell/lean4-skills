@@ -12,6 +12,8 @@ Also tests the two fail-open paths:
 - Parser-exception (shim that raises from parse_invocation).
 """
 
+from __future__ import annotations
+
 import json
 import os
 import shutil

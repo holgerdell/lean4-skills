@@ -9,6 +9,8 @@ Public surface:
     PositionalSpec, Coercion, CrossValidation, and Literal aliases.
 """
 
+from __future__ import annotations
+
 from .formatter import format_validated_block, parse_validated_block
 from .parser import parse_invocation
 from .specs import COMMAND_SPECS
@@ -29,9 +31,6 @@ from .types import (
 
 __all__ = [
     "COMMAND_SPECS",
-    "parse_invocation",
-    "format_validated_block",
-    "parse_validated_block",
     "Coercion",
     "CommandSpec",
     "CrossValidation",
@@ -44,4 +43,7 @@ __all__ = [
     "ResolvedFlag",
     "Severity",
     "Source",
+    "format_validated_block",
+    "parse_invocation",
+    "parse_validated_block",
 ]
