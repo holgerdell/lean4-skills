@@ -1279,9 +1279,6 @@ check_description_alignment() {
     local cmd_dir="$PLUGIN_ROOT/commands"
     local skill_md="$PLUGIN_ROOT/skills/lean4/SKILL.md"
     local plugin_readme="$PLUGIN_ROOT/README.md"
-    local repo_root
-    repo_root="$(cd "$PLUGIN_ROOT" && cd ../.. && pwd)"
-    local repo_readme="$repo_root/README.md"
 
     local _da_cmd _da_desc _da_mismatches
     _da_mismatches=0
