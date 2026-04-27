@@ -32,7 +32,7 @@ import sys
 import subprocess
 import shutil
 from pathlib import Path
-from typing import List, Tuple, Set
+from typing import List, Tuple
 
 def extract_imports(content: str) -> List[Tuple[int, str]]:
     """Extract all import statements with their line numbers (1-indexed)"""
@@ -110,8 +110,8 @@ def minimize_imports(filepath: Path, dry_run: bool = False, verbose: bool = Fals
     compiles, output = check_compiles(filepath, verbose)
 
     if not compiles:
-        print(f"ERROR: Original file doesn't compile!", file=sys.stderr)
-        print(f"Cannot minimize imports for a file with compilation errors", file=sys.stderr)
+        print("ERROR: Original file doesn't compile!", file=sys.stderr)
+        print("Cannot minimize imports for a file with compilation errors", file=sys.stderr)
         if verbose:
             print(f"\nCompilation output:\n{output}")
         sys.exit(1)
@@ -122,7 +122,7 @@ def minimize_imports(filepath: Path, dry_run: bool = False, verbose: bool = Fals
     unused_imports = []
     used_imports = []
 
-    print(f"\nTesting each import (this may take a while)...")
+    print("\nTesting each import (this may take a while)...")
 
     try:
         for i, (line_num, import_line) in enumerate(imports, 1):
@@ -153,10 +153,10 @@ def minimize_imports(filepath: Path, dry_run: bool = False, verbose: bool = Fals
 
             if compiles:
                 unused_imports.append(import_line)
-                print(f"    → Appears UNUSED ✗")
+                print("    → Appears UNUSED ✗")
             else:
                 used_imports.append(import_line)
-                print(f"    → Required ✓")
+                print("    → Required ✓")
 
             # Restore original after each test
             if not dry_run:
@@ -187,7 +187,7 @@ def minimize_imports(filepath: Path, dry_run: bool = False, verbose: bool = Fals
         if dry_run:
             print("\n[DRY RUN] Would remove the unused imports above")
             print("Note: --dry-run uses heuristic (module name in file). May have false positives.")
-            print(f"Run without --dry-run to actually remove them")
+            print("Run without --dry-run to actually remove them")
         else:
             print("\nRemoving unused imports...")
 

@@ -74,7 +74,7 @@ class TestStandaloneCLI(unittest.TestCase):
                 f.write("")
             r = self._run([
                 "draft", "--cwd", tmpdir, "--",
-                f'--output=file --out=existing.lean "x"'
+                '--output=file --out=existing.lean "x"'
             ])
             self.assertEqual(r.returncode, 2, msg=r.stderr)
             data = json.loads(r.stdout)

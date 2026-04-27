@@ -240,10 +240,10 @@ def format_output(file_path: Path, bindings: List[LetBinding],
 
     # Summary
     output.append(f"{'='*70}")
-    output.append(f"SUMMARY")
+    output.append("SUMMARY")
     output.append(f"{'='*70}")
     output.append(f"  Total let bindings: {len(bindings)}")
-    output.append(f"  Note: Token counts are approximate (heuristic-based)")
+    output.append("  Note: Token counts are approximate (heuristic-based)")
     output.append(f"  ⚠️  Don't inline (used ≥3 times): {len(dont_inline)}")
     output.append(f"  ✅ Safe to inline (used ≤1 time): {len(safe_to_inline)}")
     output.append(f"  ⚡ Marginal (used 2 times): {len(consider) + len(skip)}")
@@ -252,7 +252,7 @@ def format_output(file_path: Path, bindings: List[LetBinding],
 
     if dont_inline:
         output.append(f"⚠️  WARNING: {len(dont_inline)} bindings would INCREASE tokens if inlined!")
-        output.append(f"   These are FALSE POSITIVES for let+have+exact pattern.")
+        output.append("   These are FALSE POSITIVES for let+have+exact pattern.")
         output.append("")
 
     return '\n'.join(output)
@@ -271,10 +271,10 @@ def analyze_specific_binding(file_path: Path, line_number: int) -> Optional[str]
             output.append(f"{'='*70}\n")
             output.append(f"Definition: {definition}")
             output.append(f"Definition size: ~{binding.definition_tokens} tokens\n")
-            output.append(f"Usage:")
+            output.append("Usage:")
             output.append(f"  Count: {binding.uses_count} times")
             output.append(f"  Locations: {', '.join(map(str, binding.use_locations))}\n")
-            output.append(f"Token Impact:")
+            output.append("Token Impact:")
             output.append(f"  Current: ~{binding.definition_tokens + binding.uses_count * 2} tokens")
             output.append(f"           ({binding.definition_tokens} def + {binding.uses_count} × 2 uses)")
             output.append(f"  Inlined: ~{binding.definition_tokens * binding.uses_count} tokens")
@@ -337,7 +337,7 @@ Key insight:
     # Specific line analysis
     if args.line:
         if not path.is_file():
-            print(f"Error: --line requires a file, not a directory", file=sys.stderr)
+            print("Error: --line requires a file, not a directory", file=sys.stderr)
             return 1
         result = analyze_specific_binding(path, args.line)
         print(result)

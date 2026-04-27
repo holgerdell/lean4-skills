@@ -353,7 +353,7 @@ on large files. Consider using --priority high to limit scope.
         if successes:
             total_saved = sum(r['saved_lines'] for _, r in successes)
             print(f"Total lines saveable: {total_saved}")
-            print(f"\nSuccessful replacements:")
+            print("\nSuccessful replacements:")
             for cand, result in successes:
                 print(f"  {cand.file_path}:{cand.line_start} ({cand.lemma_name})")
                 print(f"    {result['suggestion']}")

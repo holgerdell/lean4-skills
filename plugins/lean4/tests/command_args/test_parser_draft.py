@@ -1,5 +1,4 @@
 """Layer 1 parser golden tests for /lean4:draft."""
-import json
 import os
 import sys
 import unittest
