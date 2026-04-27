@@ -35,7 +35,8 @@ check_commands() {
 
     local cmd_dir="$PLUGIN_ROOT/commands"
     local actual_commands
-    actual_commands=$(find "$cmd_dir" -name "*.md" -type f | xargs -I{} basename {} .md | sort)
+    actual_commands=$(find "$cmd_dir" -name "*.md" -type f -print0 \
+        | xargs -0 -I{} basename {} .md | sort)
     local count
     count=$(echo "$actual_commands" | wc -l | tr -d ' ')
 
@@ -100,7 +101,8 @@ check_agents() {
 
     local agent_dir="$PLUGIN_ROOT/agents"
     local actual_agents
-    actual_agents=$(find "$agent_dir" -name "*.md" -type f | xargs -I{} basename {} .md | sort)
+    actual_agents=$(find "$agent_dir" -name "*.md" -type f -print0 \
+        | xargs -0 -I{} basename {} .md | sort)
     local count
     count=$(echo "$actual_agents" | wc -l | tr -d ' ')
 
