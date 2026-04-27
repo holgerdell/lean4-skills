@@ -182,7 +182,7 @@ Analyze let binding usage to avoid bad optimizations.
 
 ## Requirements
 
-- **Bash 4.0+** (for shell scripts)
+- **Bash 3.2+** (for shell scripts)
 - **Python 3.8+** (for Python scripts)
 - **Lean 4 project** with `lake`
 - **mathlib** in `.lake/packages/mathlib` (for search)
