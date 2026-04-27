@@ -21,7 +21,7 @@ _LIB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _LIB_ROOT not in sys.path:
     sys.path.insert(0, _LIB_ROOT)
 
-from command_args import COMMAND_SPECS, parse_invocation
+from command_args import COMMAND_SPECS, parse_invocation  # noqa: E402
 
 
 def main() -> int:

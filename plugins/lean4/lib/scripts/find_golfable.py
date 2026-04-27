@@ -391,12 +391,12 @@ def find_apply_exact_chains(file_path: Path, lines: list[str]) -> list[GolfableP
     """
     patterns = []
     i = 0
-    NON_COLLAPSIBLE = re.compile(r"\b(simp|omega|decide|norm_num)\b")
-    MULTI_GOAL_KW = re.compile(r"\b(cases|induction|match)\b")
-    APPLY_RE = re.compile(r"^\s*(?:·\s*)?apply\b")
-    EXACT_RE = re.compile(r"\b(exact)\b")
+    non_collapsible = re.compile(r"\b(simp|omega|decide|norm_num)\b")
+    multi_goal_kw = re.compile(r"\b(cases|induction|match)\b")
+    apply_re = re.compile(r"^\s*(?:·\s*)?apply\b")
+    exact_re = re.compile(r"\b(exact)\b")
     # Patterns that indicate a multi-goal branch context
-    BRANCH_RE = re.compile(r"^\s*(?:·\s*(?:cases|induction|match)\b|\|\s*\w+)")
+    branch_re = re.compile(r"^\s*(?:·\s*(?:cases|induction|match)\b|\|\s*\w+)")
 
     # Pre-scan for calc block ranges to skip
     calc_ranges: list[tuple[int, int]] = []
@@ -444,10 +444,10 @@ def find_apply_exact_chains(file_path: Path, lines: list[str]) -> list[GolfableP
             if scan_indent > target_indent:
                 continue
             # Check for multi-goal keyword at enclosing indent
-            if MULTI_GOAL_KW.search(scan_stripped):
+            if multi_goal_kw.search(scan_stripped):
                 return True
             # Check for bullet-prefixed multi-goal or pattern-match arm
-            if BRANCH_RE.match(scan_line):
+            if branch_re.match(scan_line):
                 return True
             # Check for pattern-match arm with `=>`
             if re.match(r"^\s*\|.*=>", scan_line):
@@ -462,7 +462,7 @@ def find_apply_exact_chains(file_path: Path, lines: list[str]) -> list[GolfableP
         line = lines[i]
         stripped = line.strip()
 
-        if not APPLY_RE.match(line):
+        if not apply_re.match(line):
             i += 1
             continue
 
@@ -475,7 +475,7 @@ def find_apply_exact_chains(file_path: Path, lines: list[str]) -> list[GolfableP
         block_end = i + 1
         has_exact = False
         semicolons = stripped.count(";")
-        has_unsafe_tactic = bool(NON_COLLAPSIBLE.search(stripped))
+        has_unsafe_tactic = bool(non_collapsible.search(stripped))
         has_have_refine = bool(re.search(r"\b(have|refine)\b", stripped))
 
         base_indent = len(line) - len(line.lstrip())
@@ -497,11 +497,11 @@ def find_apply_exact_chains(file_path: Path, lines: list[str]) -> list[GolfableP
 
             block_end = j + 1
             semicolons += next_stripped.count(";")
-            if NON_COLLAPSIBLE.search(next_stripped):
+            if non_collapsible.search(next_stripped):
                 has_unsafe_tactic = True
             if re.search(r"\b(have|refine)\b", next_stripped):
                 has_have_refine = True
-            if EXACT_RE.search(next_stripped):
+            if exact_re.search(next_stripped):
                 has_exact = True
 
         if not has_exact:
