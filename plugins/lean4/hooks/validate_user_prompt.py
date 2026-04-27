@@ -35,7 +35,7 @@ _COVERED_COMMANDS = {
 }
 
 
-def _emit(obj: dict) -> None:
+def _emit(obj: dict[str, object]) -> None:
     json.dump(obj, sys.stdout)
     sys.stdout.write("\n")
 

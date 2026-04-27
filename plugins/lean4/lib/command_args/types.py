@@ -120,7 +120,7 @@ class ParseResult:
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
         """Serialize to a plain dict for JSON output / artifact writing."""
         return {
             "command": self.command,

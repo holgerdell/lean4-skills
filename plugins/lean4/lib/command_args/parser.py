@@ -11,6 +11,7 @@ from .types import (
     ParseContext,
     ParseResult,
     ResolvedFlag,
+    Source,
 )
 
 
@@ -129,6 +130,7 @@ def parse_invocation(spec: CommandSpec, raw_tail: str, *, cwd: str) -> ParseResu
                 result.coercions.append(note)
 
         # Determine source
+        source: Source
         if coerced:
             source = "coerced"
         elif user_supplied:
@@ -202,7 +204,7 @@ def _validate_type(fs: FlagSpec, raw_value: object) -> tuple[object, str | None]
 
     if fs.type == "int":
         try:
-            n = int(raw_value)
+            n = int(str(raw_value))
         except (ValueError, TypeError):
             return raw_value, f"{fs.name}: expected integer, got {raw_value!r}"
         if fs.int_min is not None and n < fs.int_min:
